@@ -36,4 +36,19 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Logged out']);
     }
+
+    public function refresh(Request $request)
+    {
+        $user = $request->user();
+        if(!$user){
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+        $request->user()->currentAccessToken()->delete();
+        $token = $user->createToken('api-token')->plainTextToken;
+
+        return response()->json([
+            'user' => $user,
+            'token' => $token
+        ]);
+    }
 }

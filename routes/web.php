@@ -8,3 +8,6 @@ Route::post('login', [WebAuthController::class, 'login'])->name('login.submit');
 Route::get('/dashboard', function(){
     return view('dashboard');
 })->middleware('auth');
+Route::get('/admin-only', function () {
+    return "OK ADMIN";
+})->middleware(['auth','role:Admin']);

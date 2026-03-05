@@ -1,0 +1,3 @@
+<h1>403</h1>
+<p>Brak dostępu do tej strony.</p>
+<a href="/dashboard">Powrót do dashboard</a>
