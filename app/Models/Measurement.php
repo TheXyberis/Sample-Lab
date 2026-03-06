@@ -27,4 +27,9 @@ class Measurement extends Model
     {
         return $this->belongsTo(User::class,'assignee_id');
     }
+    
+    public function resultSets()
+    {
+        return $this->hasMany(ResultSet::class);
+    }
 }
