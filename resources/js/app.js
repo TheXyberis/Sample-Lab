@@ -8,3 +8,10 @@ if (token) {
 } else {
     console.error('CSRF token not found');
 }
+
+window.axios.defaults.baseURL = '/';
+
+const authToken = localStorage.getItem('auth_token');
+if (authToken) {
+    window.axios.defaults.headers.common['Authorization'] = 'Bearer ' + authToken;
+}
