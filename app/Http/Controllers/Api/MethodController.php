@@ -96,4 +96,9 @@ class MethodController extends Controller
         $method = Method::findOrFail($id);
         return view('methods.form', compact('method'));
     }
+    public function showView($id)
+    {
+        $method = Method::findOrFail($id);
+        return view('methods.show', compact('method'));
+    }
 }

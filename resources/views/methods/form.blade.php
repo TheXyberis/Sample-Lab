@@ -10,14 +10,12 @@
             @method('PUT')
         @endif
 
-        <!-- Name -->
         <div class="mb-3">
             <label for="name" class="form-label">Method Name</label>
             <input type="text" class="form-control" name="name" id="name" 
                    value="{{ $method->name ?? old('name') }}" required>
         </div>
 
-        <!-- schema_json -->
         <div class="mb-3">
             <label for="schema_json" class="form-label">Schema JSON</label>
             <textarea class="form-control" name="schema_json" id="schema_json" rows="10" required>
@@ -26,7 +24,6 @@
             <small class="text-muted">JSON fields: key, type, label, required, unit, options</small>
         </div>
 
-        <!-- limits_json -->
         <div class="mb-3">
             <label for="limits_json" class="form-label">Limits JSON</label>
             <textarea class="form-control" name="limits_json" id="limits_json" rows="5">
@@ -34,7 +31,6 @@
             </textarea>
         </div>
 
-        <!-- Buttons -->
         <button type="submit" class="btn btn-primary">Save Draft</button>
 
         @if(isset($method))
@@ -47,7 +43,6 @@
 <script>
 document.addEventListener('DOMContentLoaded', function(){
     @if(isset($method))
-    // Create New Version
     document.getElementById('btn-version').addEventListener('click', function(){
         fetch('/api/methods/{{ $method->id }}/version', {
             method: 'POST',
@@ -61,7 +56,6 @@ document.addEventListener('DOMContentLoaded', function(){
         });
     });
 
-    // Publish
     document.getElementById('btn-publish').addEventListener('click', function(){
         fetch('/api/methods/{{ $method->id }}/publish', {
             method: 'POST',

@@ -8,6 +8,8 @@ Route::post('auth/login', [AuthController::class, 'login']);
 Route::post('auth/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 Route::post('auth/refresh', [AuthController::class, 'refresh'])->middleware('auth:sanctum');
 
+
+
 Route::middleware('auth:sanctum')->group(function(){
     Route::get('/methods',[MethodController::class,'index']);
     Route::post('/methods',[MethodController::class,'store']);
@@ -24,4 +26,7 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::put('/measurements/{id}',[MeasurementController::class,'update']);
     Route::patch('/measurements/{id}/start',[MeasurementController::class,'start']);
     Route::patch('/measurements/{id}/finish',[MeasurementController::class,'finish']);
+    
+    Route::post('/samples/{id}/measurements', [MeasurementController::class,'storeForSample']);
+    Route::post('/measurements/bulk-plan', [MeasurementController::class,'bulkPlan']);
 });
