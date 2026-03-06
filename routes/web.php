@@ -31,3 +31,7 @@ Route::middleware('auth')->group(function(){
     Route::patch('/measurements/{id}/start',[MeasurementController::class,'start'])->name('measurements.start');
     Route::patch('/measurements/{id}/finish',[MeasurementController::class,'finish'])->name('measurements.finish');
 });
+
+Route::get('/login', function () {
+    return view('auth.login');
+});
