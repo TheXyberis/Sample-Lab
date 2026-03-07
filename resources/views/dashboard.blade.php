@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('content')
 <h1>Dashboard</h1>
-<p>Witaj, {{ Auth::user()->name }}! Role: {{ Auth::user()->getRoleNames()->first() }}</p>
+<p>Witaj, {{ Auth::user()->name }}! Role: {{ Auth::user()->role }}</p>
 
 <div class="row mt-4">
     <div class="col-md-3"><div class="card text-center"><div class="card-body">

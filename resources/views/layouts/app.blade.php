@@ -27,7 +27,7 @@
             </ul>
             <ul class="navbar-nav">
                 @auth
-                    <li class="nav-item"><span class="nav-link">{{ Auth::user()->name }} ({{ Auth::user()->getRoleNames()->first() }})</span></li>
+                    <li class="nav-item"><span class="nav-link">{{ Auth::user()->name }} ({{ Auth::user()->role }})</span></li>
                     <li class="nav-item">
                         <form method="POST" action="{{ route('logout') }}">@csrf
                             <button class="btn btn-sm btn-outline-danger">Logout</button>
