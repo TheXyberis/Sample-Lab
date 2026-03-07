@@ -51,12 +51,12 @@
 
         <div class="mb-3">
             <label class="form-label">Collected At</label>
-            <input type="date" name="collected_at" class="form-control" value="{{ old('collected_at', isset($sample)?$sample->collected_at?->format('Y-m-d'):null:'') }}">
+            <input type="date" name="collected_at" class="form-control" value="{{ old('collected_at', isset($sample) ? $sample->collected_at?->format('Y-m-d') : '') }}">
         </div>
 
         <div class="mb-3">
             <label class="form-label">Metadata JSON</label>
-            <textarea name="metadata_json" class="form-control" rows="4">{{ old('metadata_json', isset($sample)?json_encode($sample->metadata_json, JSON_PRETTY_PRINT):'') }}</textarea>
+            <textarea name="metadata_json" class="form-control" rows="4">{{ old('metadata_json', isset($sample) ? json_encode($sample->metadata_json, JSON_PRETTY_PRINT) : '') }}</textarea>
         </div>
 
         <button class="btn btn-success">{{ isset($sample) ? 'Update' : 'Create' }}</button>

@@ -33,7 +33,7 @@ Route::middleware('auth:sanctum')->group(function(){
 });
 
 Route::middleware('auth:sanctum')->group(function(){
-    Route::apiResource('samples', App\Http\Controllers\Api\SampleController::class);
+    Route::apiResource('samples', App\Http\Controllers\Api\SampleController::class)->names('api.samples');
     
     Route::post('/samples/import/preview', [SampleController::class,'importPreview']);
     Route::post('/samples/import/confirm', [SampleController::class,'importConfirm']);
