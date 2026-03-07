@@ -96,4 +96,49 @@ class SampleWebController extends Controller
             'created' => $created
         ]);
     }
+
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string',
+            'type' => 'required|string',
+            'client_id' => 'nullable|exists:clients,id',
+            'project_id' => 'nullable|exists:projects,id',
+            'quantity' => 'nullable|numeric',
+            'unit' => 'nullable|string',
+        ]);
+
+        $data['sample_code'] = 'S-' . date('Y') . '-' . str_pad(Sample::count() + 1, 4, '0', STR_PAD_LEFT);
+        $data['created_by'] = Auth::id();
+
+        Sample::create($data);
+
+        return redirect()->route('samples.index')->with('success', 'Sample created successfully');
+    }
+
+    public function update(Request $request, $id)
+    {
+        $sample = Sample::findOrFail($id);
+
+        $data = $request->validate([
+            'name' => 'required|string',
+            'type' => 'required|string',
+            'client_id' => 'nullable|exists:clients,id',
+            'project_id' => 'nullable|exists:projects,id',
+            'quantity' => 'nullable|numeric',
+            'unit' => 'nullable|string',
+        ]);
+
+        $sample->update($data);
+
+        return redirect()->route('samples.index')->with('success', 'Sample updated successfully');
+    }
+
+    public function destroy($id)
+    {
+        $sample = Sample::findOrFail($id);
+        $sample->delete();
+
+        return redirect()->route('samples.index')->with('success', 'Sample deleted successfully');
+    }
 }

@@ -7,17 +7,33 @@ use App\Http\Controllers\MeasurementController;
 use App\Http\Controllers\ResultController;
 use App\Http\Controllers\SampleWebController;
 
+Route::get('/', function () {
+    return redirect()->route('dashboard');
+});
+
 Route::get('/login', [WebAuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [WebAuthController::class, 'login'])->name('login.submit');
+Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
+Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', fn()=>view('dashboard'))->name('dashboard');
+});
+
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
 
     Route::get('/admin-only', function () {
         return "OK ADMIN";
     })->middleware('role:Admin');
+
+    Route::get('samples/import', fn()=>view('samples.import'))->name('samples.import');
+    Route::resource('samples', SampleWebController::class);
+
+    Route::resource('measurements', MeasurementController::class)->only(['index','create','edit','show','store','update']);
+
+    Route::get('qc/queue', fn()=>view('qc.queue'))->name('qc.queue');
+    Route::get('reports', fn()=>view('reports.index'))->name('reports.index');
+    Route::get('users', fn()=>view('users.index'))->name('users.index');
+    Route::get('audit', fn()=>view('audit.index'))->name('audit.index');
 
     Route::prefix('methods')->group(function () {
         Route::get('/list', [MethodController::class, 'indexView'])->name('methods.index');
@@ -32,10 +48,6 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::prefix('measurements')->group(function () {
-        Route::get('/', [MeasurementController::class, 'indexView'])->name('measurements.index');
-        Route::get('/create', [MeasurementController::class, 'createView'])->name('measurements.create');
-        Route::get('/{id}/edit', [MeasurementController::class, 'editView'])->name('measurements.edit');
-
         Route::patch('/{id}/start', [MeasurementController::class, 'start'])->name('measurements.start');
         Route::patch('/{id}/finish', [MeasurementController::class, 'finish'])->name('measurements.finish');
 
@@ -48,14 +60,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{id}/results/lock', [ResultController::class, 'lock'])->name('results.lock');
         Route::post('/{id}/results/unlock', [ResultController::class, 'unlock'])->name('results.unlock');
     });
-});
-
-Route::middleware(['auth'])->group(function () {
-    Route::get('/samples/import', function() {
-        return view('samples.import');
-    })->name('samples.import');
 
     Route::post('/samples/import/preview', [App\Http\Controllers\Api\SampleController::class, 'importPreview'])->name('samples.import.preview');
     Route::post('/samples/import/confirm', [App\Http\Controllers\Api\SampleController::class, 'importConfirm'])->name('samples.import.confirm');
 });
-

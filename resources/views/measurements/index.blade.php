@@ -21,6 +21,7 @@
                 <td>{{ $m->planned_at }}</td>
                 <td>
                 <a href="{{ route('measurements.edit',$m->id) }}" class="btn btn-sm btn-warning">Edit</a>
+                <a href="{{ route('results.page',$m->id) }}" class="btn btn-sm btn-info">Results</a>
                 <form method="POST" action="{{ route('measurements.start',$m->id) }}" style="display:inline;">
                     @csrf @method('PATCH')
                     <button type="submit" class="btn btn-sm btn-success">Start</button>

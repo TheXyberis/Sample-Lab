@@ -4,6 +4,7 @@
     <h2>Samples</h2>
     <div class="mb-3">
         <a href="{{ route('samples.create') }}" class="btn btn-primary">Create Sample</a>
+        <a href="{{ route('samples.import') }}" class="btn btn-secondary">Import CSV</a>
     </div>
 
     <form method="GET" class="mb-3">

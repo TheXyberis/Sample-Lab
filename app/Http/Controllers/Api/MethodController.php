@@ -27,7 +27,11 @@ class MethodController extends Controller
         $method->base_method_id = $method->id;
         $method->save();
 
-        return response()->json($method,201);
+        if ($request->expectsJson()) {
+            return response()->json($method,201);
+        } else {
+            return redirect()->route('methods.index')->with('success', 'Method created');
+        }
     }
     public function index()
     {
@@ -42,17 +46,26 @@ class MethodController extends Controller
         $method = Method::findOrFail($id);
 
         if ($method->status !== 'DRAFT') {
-            return response()->json([
-                'error'=>'Published methods cannot be edited'
-            ],403);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'error'=>'Published methods cannot be edited'
+                ],403);
+            } else {
+                return redirect()->back()->with('error', 'Published methods cannot be edited');
+            }
         }
 
         $method->update($request->only([
+            'name',
             'schema_json',
             'limits_json'
         ]));
 
-        return $method;
+        if ($request->expectsJson()) {
+            return $method;
+        } else {
+            return redirect()->route('methods.index')->with('success', 'Method updated');
+        }
     }
     public function version($id)
     {
