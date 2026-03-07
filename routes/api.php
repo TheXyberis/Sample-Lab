@@ -3,6 +3,7 @@ use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\MethodController;
 use App\Http\Controllers\Api\MeasurementController;
+use App\Http\Controllers\Api\SampleController;
 
 Route::post('auth/login', [AuthController::class, 'login']);
 Route::post('auth/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
@@ -29,4 +30,16 @@ Route::middleware('auth:sanctum')->group(function(){
     
     Route::post('/samples/{id}/measurements', [MeasurementController::class,'storeForSample']);
     Route::post('/measurements/bulk-plan', [MeasurementController::class,'bulkPlan']);
+});
+
+Route::middleware('auth:sanctum')->group(function(){
+    Route::apiResource('samples', App\Http\Controllers\Api\SampleController::class);
+    
+    Route::post('/samples/import/preview', [SampleController::class,'importPreview']);
+    Route::post('/samples/import/confirm', [SampleController::class,'importConfirm']);
+});
+
+Route::middleware('auth')->group(function() {
+    Route::post('/samples/import/preview', [SampleController::class,'importPreview']);
+    Route::post('/samples/import/confirm', [SampleController::class,'importConfirm']);
 });

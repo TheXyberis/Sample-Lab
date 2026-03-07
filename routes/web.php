@@ -5,6 +5,7 @@ use App\Http\Controllers\WebAuthController;
 use App\Http\Controllers\Api\MethodController;
 use App\Http\Controllers\MeasurementController;
 use App\Http\Controllers\ResultController;
+use App\Http\Controllers\SampleWebController;
 
 Route::get('/login', [WebAuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [WebAuthController::class, 'login'])->name('login.submit');
@@ -48,3 +49,13 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{id}/results/unlock', [ResultController::class, 'unlock'])->name('results.unlock');
     });
 });
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/samples/import', function() {
+        return view('samples.import');
+    })->name('samples.import');
+
+    Route::post('/samples/import/preview', [App\Http\Controllers\Api\SampleController::class, 'importPreview'])->name('samples.import.preview');
+    Route::post('/samples/import/confirm', [App\Http\Controllers\Api\SampleController::class, 'importConfirm'])->name('samples.import.confirm');
+});
+

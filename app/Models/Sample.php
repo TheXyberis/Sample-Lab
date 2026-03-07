@@ -24,4 +24,15 @@ class Sample extends Model
         'qr_value',
         'created_by'
     ];
+
+    protected $casts = [
+        'metadata_json' => 'array',
+        'collected_at' => 'datetime',
+        'received_at' => 'datetime',
+        'expires_at' => 'datetime'
+    ];
+
+    public function client(){ return $this->belongsTo(Client::class); }
+    public function project(){ return $this->belongsTo(Project::class); }
+    public function creator(){ return $this->belongsTo(User::class, 'created_by'); }
 }
