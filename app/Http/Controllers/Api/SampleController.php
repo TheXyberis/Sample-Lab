@@ -53,7 +53,7 @@ class SampleController extends Controller
             $path = $data['path'];
             
             if (!Storage::disk('local')->exists($path)) {
-                return response()->json(['error' => 'Файл не найден в хранилище: ' . $path], 404);
+                return response()->json(['error' => 'File not found in repository: ' . $path], 404);
             }
 
             $fullPath = Storage::disk('local')->path($path);
