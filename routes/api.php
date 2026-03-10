@@ -9,8 +9,6 @@ Route::post('auth/login', [AuthController::class, 'login']);
 Route::post('auth/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 Route::post('auth/refresh', [AuthController::class, 'refresh'])->middleware('auth:sanctum');
 
-
-
 Route::middleware('auth:sanctum')->group(function(){
     Route::get('/methods',[MethodController::class,'index']);
     Route::post('/methods',[MethodController::class,'store']);

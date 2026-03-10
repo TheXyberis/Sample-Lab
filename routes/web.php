@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\MethodController;
 use App\Http\Controllers\MeasurementController;
 use App\Http\Controllers\ResultController;
 use App\Http\Controllers\SampleWebController;
+use App\Http\Controllers\SampleWizardController;
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
@@ -18,7 +19,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', fn()=>view('dashboard'))->name('dashboard');
 });
 
-
 Route::middleware(['auth'])->group(function () {
 
     Route::get('/admin-only', function () {
@@ -26,6 +26,8 @@ Route::middleware(['auth'])->group(function () {
     })->middleware('role:Admin');
 
     Route::get('samples/import', fn()=>view('samples.import'))->name('samples.import');
+    Route::get('samples/create-wizard', [SampleWizardController::class, 'showForm'])->name('samples.create-wizard');
+    Route::post('samples/validate-step/{step}', [SampleWizardController::class, 'validateStep'])->name('samples.validate-step');
     Route::resource('samples', SampleWebController::class);
 
     Route::resource('measurements', MeasurementController::class)->only(['index','create','edit','show','store','update']);
