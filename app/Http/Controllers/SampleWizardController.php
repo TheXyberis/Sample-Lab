@@ -27,6 +27,10 @@ class SampleWizardController extends Controller
                 'unit' => 'nullable|string|max:50',
             ],
             4 => [
+                'method_ids' => 'required|array|min:1',
+                'method_ids.*' => 'exists:methods,id',
+            ],
+            5 => [
                 'confirm' => 'nullable',
             ],
             default => [],

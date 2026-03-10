@@ -11,13 +11,11 @@ class RoleAndUserSeeder extends Seeder
 {
     public function run()
     {
-        // Tworzymy role tylko jeśli ich nie ma
         $roles = ['Admin', 'Manager', 'Laborant', 'QC', 'Client'];
         foreach ($roles as $roleName) {
             Role::firstOrCreate(['name' => $roleName]);
         }
 
-        // Tworzymy użytkowników tylko jeśli nie istnieją
         $users = [
             ['name' => 'Admin', 'email' => 'admin@test.com', 'role' => 'Admin'],
             ['name' => 'Manager', 'email' => 'manager@test.com', 'role' => 'Manager'],

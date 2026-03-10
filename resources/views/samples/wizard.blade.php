@@ -22,6 +22,11 @@
             <div class="flex-grow-1 border-top align-self-center mx-2" style="margin-top: -25px !important;"></div>
             <div class="d-flex flex-column align-items-center stepper-item" data-step="4">
                 <div class="rounded-circle border border-secondary text-secondary d-flex align-items-center justify-content-center step-circle" style="width: 40px; height: 40px;">4</div>
+                <small class="mt-1 text-muted step-label">Methods</small>
+            </div>
+            <div class="flex-grow-1 border-top align-self-center mx-2" style="margin-top: -25px !important;"></div>
+            <div class="d-flex flex-column align-items-center stepper-item" data-step="5">
+                <div class="rounded-circle border border-secondary text-secondary d-flex align-items-center justify-content-center step-circle" style="width: 40px; height: 40px;">5</div>
                 <small class="mt-1 text-muted step-label">Review</small>
             </div>
         </div>
@@ -78,7 +83,24 @@
             </div>
 
             <div id="step-4" class="wizard-step d-none">
-                <h5 class="mb-3">Step 4: Review</h5>
+                <h5 class="mb-3">Step 4: Methods</h5>
+                <p class="text-muted small mb-3">Select at least one method for this sample.</p>
+                <div class="border rounded p-3 bg-light">
+                    @forelse(App\Models\Method::all() as $method)
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="method_ids[]" value="{{ $method->id }}" id="method-{{ $method->id }}">
+                            <label class="form-check-label" for="method-{{ $method->id }}">
+                                {{ $method->name }}@if($method->version) <span class="text-muted">(v{{ $method->version }})</span>@endif
+                            </label>
+                        </div>
+                    @empty
+                        <p class="text-muted mb-0">No methods available.</p>
+                    @endforelse
+                </div>
+            </div>
+
+            <div id="step-5" class="wizard-step d-none">
+                <h5 class="mb-3">Step 5: Review</h5>
                 <div class="table-responsive">
                     <table class="table table-bordered">
                         <tbody>
@@ -88,6 +110,7 @@
                             <tr><th>Type</th><td id="review-type">-</td></tr>
                             <tr><th>Quantity</th><td id="review-quantity">-</td></tr>
                             <tr><th>Unit</th><td id="review-unit">-</td></tr>
+                            <tr><th>Methods</th><td id="review-methods">-</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -111,7 +134,7 @@
 @section('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const totalSteps = 4;
+    const totalSteps = 5;
     let currentStep = 1;
     const btnNext = document.getElementById('btn-next');
     const btnPrev = document.getElementById('btn-prev');
@@ -120,6 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const clients = @json(App\Models\Client::all()->pluck('name', 'id'));
     const projects = @json(App\Models\Project::all()->pluck('name', 'id'));
+    const methods = @json(App\Models\Method::all()->pluck('name', 'id'));
 
     function showStep(step) {
         document.querySelectorAll('.wizard-step').forEach(el => el.classList.add('d-none'));
@@ -149,9 +173,13 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('name', document.querySelector('#step-2 [name="name"]').value);
             formData.append('type', document.querySelector('#step-2 [name="type"]').value);
         } else if (step === 3) {
-            formData.append('quantity', document.querySelector('#step-3 [name="quantity"]').value);
-            formData.append('unit', document.querySelector('#step-3 [name="unit"]').value);
+            formData.append('quantity', document.querySelector('#step-3 [name="quantity"]').value || '');
+            formData.append('unit', document.querySelector('#step-3 [name="unit"]').value || '');
         } else if (step === 4) {
+            document.querySelectorAll('#step-4 input[name="method_ids[]"]:checked').forEach(cb => {
+                formData.append('method_ids[]', cb.value);
+            });
+        } else if (step === 5) {
             formData.append('confirm', '1');
         }
         return formData;
@@ -164,8 +192,11 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('review-project').textContent = pid ? (projects[pid] || '-') : '-';
         document.getElementById('review-name').textContent = document.querySelector('[name="name"]').value || '-';
         document.getElementById('review-type').textContent = document.querySelector('[name="type"]').value || '-';
-        document.getElementById('review-quantity').textContent = document.querySelector('[name="quantity"]').value || '-';
-        document.getElementById('review-unit').textContent = document.querySelector('[name="unit"]').value || '-';
+        document.getElementById('review-quantity').textContent = document.querySelector('#step-3 [name="quantity"]').value || '-';
+        document.getElementById('review-unit').textContent = document.querySelector('#step-3 [name="unit"]').value || '-';
+        const checked = Array.from(document.querySelectorAll('#step-4 input[name="method_ids[]"]:checked'))
+            .map(cb => methods[cb.value] || cb.value).join(', ');
+        document.getElementById('review-methods').textContent = checked || '-';
     }
 
     btnNext.addEventListener('click', function() {
@@ -181,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(r => r.json())
         .then(data => {
             if (data.valid) {
-                if (currentStep === 3) fillReview();
+                if (currentStep === 4) fillReview();
                 showStep(currentStep + 1);
             } else {
                 const msgs = Object.values(data.errors || {}).flat().join('<br>');
