@@ -8,7 +8,7 @@ class SampleWizardController extends Controller
 {
     public function showForm()
     {
-        return view('samples.create-wizard');
+        return view('samples.wizard');
     }
 
     public function validateStep(Request $request, int $step)
@@ -21,6 +21,13 @@ class SampleWizardController extends Controller
             2 => [
                 'name' => 'required|string|max:255',
                 'type' => 'required|string|max:255',
+            ],
+            3 => [
+                'quantity' => 'nullable|numeric',
+                'unit' => 'nullable|string|max:50',
+            ],
+            4 => [
+                'confirm' => 'nullable',
             ],
             default => [],
         };
