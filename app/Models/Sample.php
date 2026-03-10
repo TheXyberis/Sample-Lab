@@ -32,7 +32,8 @@ class Sample extends Model
         'expires_at' => 'datetime'
     ];
 
-    public function client(){ return $this->belongsTo(Client::class); }
-    public function project(){ return $this->belongsTo(Project::class); }
-    public function creator(){ return $this->belongsTo(User::class, 'created_by'); }
+    public function client() { return $this->belongsTo(Client::class); }
+    public function project() { return $this->belongsTo(Project::class); }
+    public function creator() { return $this->belongsTo(User::class, 'created_by'); }
+    public function measurements() { return $this->hasMany(Measurement::class); }
 }

@@ -27,11 +27,17 @@
                 <p class="fw-semibold">{{ $sample->type }}</p> 
             </div> 
         </div> 
-        <div class="col-md-4"> 
-            <div class="card shadow-sm border-success h-100 p-3"> 
-                <h6 class="text-muted">Status</h6> 
-                <p class="fw-semibold">{{ $sample->status }}</p> 
-            </div> 
+        <div class="col-md-4">
+            <div class="card shadow-sm border-success h-100 p-3">
+                <h6 class="text-muted">Status</h6>
+                @php
+                    $statusBadge = match($sample->status ?? '') {
+                        'REGISTERED' => 'secondary', 'IN_PROGRESS' => 'info', 'COMPLETED' => 'success',
+                        'ARCHIVED' => 'dark', 'DISPOSED' => 'danger', default => 'secondary'
+                    };
+                @endphp
+                <span class="badge bg-{{ $statusBadge }} fs-6">{{ $sample->status }}</span>
+            </div>
         </div> 
     </div> 
  
@@ -48,12 +54,32 @@
         </table> 
     </div> 
  
-    @if($sample->qr_value) 
-    <div class="mb-4"> 
-        <h5>QR Code</h5> 
-        <img src="{{ asset($sample->qr_value) }}" alt="QR Code" class="img-thumbnail" style="max-width:180px;"> 
-    </div> 
-    @endif 
- 
-</div> 
+    @if($sample->qr_value)
+    <div class="mb-4">
+        <h5>QR Code</h5>
+        <img src="{{ asset($sample->qr_value) }}" alt="QR Code" class="img-thumbnail" style="max-width:180px;">
+    </div>
+    @endif
+
+    @if($sample->measurements && $sample->measurements->count() > 0)
+    <div class="card shadow-sm mb-4">
+        <div class="card-header"><h5 class="mb-0">Measurements</h5></div>
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-light"><tr><th>Method</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody>
+                    @foreach($sample->measurements as $m)
+                    <tr>
+                        <td>{{ $m->method?->name }}</td>
+                        <td><span class="badge bg-secondary">{{ $m->status }}</span></td>
+                        <td><a href="{{ route('results.page', $m->id) }}" class="btn btn-sm btn-outline-info">Results</a></td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @endif
+
+</div>
 @endsection

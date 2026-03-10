@@ -11,11 +11,18 @@ class MethodController extends Controller
 {
     public function store(Request $request)
     {
+        $schema = is_string($request->schema_json) ? json_decode($request->schema_json, true) : $request->schema_json;
+        $limits = is_string($request->limits_json ?? null) ? json_decode($request->limits_json, true) : ($request->limits_json ?? null);
+
         $data = $request->validate([
             'name' => 'required|string',
-            'schema_json' => 'required|array',
-            'limits_json' => 'nullable|array'
         ]);
+
+        if (!is_array($schema)) {
+            return redirect()->back()->withErrors(['schema_json' => 'Invalid JSON'])->withInput();
+        }
+        $data['schema_json'] = $schema;
+        $data['limits_json'] = $limits;
 
         $method = Method::create([
             'name'=>$data['name'],
@@ -47,19 +54,23 @@ class MethodController extends Controller
 
         if ($method->status !== 'DRAFT') {
             if ($request->expectsJson()) {
-                return response()->json([
-                    'error'=>'Published methods cannot be edited'
-                ],403);
-            } else {
-                return redirect()->back()->with('error', 'Published methods cannot be edited');
+                return response()->json(['error' => 'Published methods cannot be edited'], 403);
             }
+            return redirect()->back()->with('error', 'Published methods cannot be edited');
         }
 
-        $method->update($request->only([
-            'name',
-            'schema_json',
-            'limits_json'
-        ]));
+        $schema = is_string($request->schema_json) ? json_decode($request->schema_json, true) : $request->schema_json;
+        $limits = is_string($request->limits_json ?? null) ? json_decode($request->limits_json, true) : ($request->limits_json ?? null);
+
+        if (!is_array($schema)) {
+            return redirect()->back()->withErrors(['schema_json' => 'Invalid JSON'])->withInput();
+        }
+
+        $method->update([
+            'name' => $request->name,
+            'schema_json' => $schema,
+            'limits_json' => $limits,
+        ]);
 
         if ($request->expectsJson()) {
             return $method;
@@ -67,32 +78,34 @@ class MethodController extends Controller
             return redirect()->route('methods.index')->with('success', 'Method updated');
         }
     }
-    public function version($id)
+    public function version(Request $request, $id)
     {
         $method = Method::findOrFail($id);
-
         $new = Method::create([
-            'base_method_id'=>$method->base_method_id,
-            'name'=>$method->name,
-            'version'=>$method->version+1,
-            'schema_json'=>$method->schema_json,
-            'limits_json'=>$method->limits_json,
+            'base_method_id' => $method->base_method_id,
+            'name' => $method->name,
+            'version' => $method->version + 1,
+            'schema_json' => $method->schema_json,
+            'limits_json' => $method->limits_json,
             'created_by' => Auth::id(),
-            'status'=>'DRAFT'
+            'status' => 'DRAFT'
         ]);
 
-        return $new;
+        if ($request->expectsJson()) {
+            return response()->json($new);
+        }
+        return redirect()->route('methods.edit', $new->id)->with('success', 'New version created');
     }
-    public function publish($id)
+    public function publish(Request $request, $id)
     {
         $method = Method::findOrFail($id);
-
-        $method->status='PUBLISHED';
+        $method->status = 'PUBLISHED';
         $method->save();
 
-        return response()->json([
-            'message'=>'method published'
-        ]);
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'method published']);
+        }
+        return redirect()->route('methods.index')->with('success', 'Method published');
     }
     public function indexView()
     {

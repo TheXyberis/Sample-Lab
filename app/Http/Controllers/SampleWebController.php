@@ -7,11 +7,23 @@ use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Sample;
+use App\Models\AuditLog;
 
 class SampleWebController extends Controller
 {
-    public function index(){
-        $samples = Sample::paginate(20);
+    public function index(Request $request){
+        $query = Sample::with(['client', 'project']);
+        if ($request->filled('q')) {
+            $q = $request->q;
+            $query->where(function ($qry) use ($q) {
+                $qry->where('name', 'like', "%{$q}%")
+                    ->orWhere('sample_code', 'like', "%{$q}%");
+            });
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        $samples = $query->paginate(20)->withQueryString();
         return view('samples.index', compact('samples'));
     }
 
@@ -25,7 +37,7 @@ class SampleWebController extends Controller
     }
 
     public function show($id){
-        $sample = Sample::findOrFail($id);
+        $sample = Sample::with(['measurements.method', 'client', 'project'])->findOrFail($id);
         return view('samples.show', compact('sample'));
     }
 
@@ -36,18 +48,18 @@ class SampleWebController extends Controller
         ]);
 
         $file = $request->file('file');
-        $path = $file->store('imports');
+        $path = $file->store('imports', 'local');
 
-        $rows = Excel::toArray([], $file);
-        if(empty($rows) || empty($rows[0])){
-            return response()->json(['error'=>'Empty CSV'],422);
+        $fullPath = Storage::disk('local')->path($path);
+        $rows = Excel::toArray(new \stdClass(), $fullPath);
+
+        if (empty($rows) || empty($rows[0])) {
+            return response()->json(['error' => 'Empty CSV'], 422);
         }
-
-        $preview = array_slice($rows[0],0,50);
 
         return response()->json([
             'path' => $path,
-            'preview' => $preview
+            'preview' => array_slice($rows[0], 0, 50)
         ]);
     }
 
@@ -55,46 +67,54 @@ class SampleWebController extends Controller
     {
         $data = $request->validate([
             'path' => 'required|string',
-            'mapping' => 'required|array'
+            'mapping' => 'required|array',
+            'client_id' => 'required|exists:clients,id',
+            'project_id' => 'nullable|exists:projects,id',
         ]);
 
         $path = $data['path'];
-        $mapping = $data['mapping'];
 
-        if(!Storage::exists($path)){
-            return response()->json(['error'=>'File not found'],404);
+        if (!Storage::disk('local')->exists($path)) {
+            return response()->json(['error' => 'File not found'], 404);
         }
 
-        $rows = Excel::toArray([], Storage::path($path));
-        if(empty($rows) || empty($rows[0])){
-            return response()->json(['error'=>'Empty CSV'],422);
+        $fullPath = Storage::disk('local')->path($path);
+        $rows = Excel::toArray(new \stdClass(), $fullPath);
+
+        if (empty($rows) || empty($rows[0])) {
+            return response()->json(['error' => 'Empty CSV'], 422);
         }
 
         $rows = $rows[0];
         $created = 0;
 
-        foreach($rows as $rowIndex => $row){
-            if($rowIndex === 0) continue;
+        foreach ($rows as $rowIndex => $row) {
+            if ($rowIndex === 0) continue;
+
             $sampleData = [];
-
-            foreach($mapping as $field => $col){
-                $index = intval(str_replace('col','',$col));
-                $sampleData[$field] = $row[$index] ?? null;
+            foreach ($data['mapping'] as $field => $col) {
+                $colIndex = (int) filter_var($col, FILTER_SANITIZE_NUMBER_INT);
+                $sampleData[$field] = $row[$colIndex] ?? null;
             }
 
-            if(empty($sampleData['sample_code'])){
-                $sampleData['sample_code'] =
-                    'S-'.date('Y').'-'.str_pad(rand(1,9999),4,'0',STR_PAD_LEFT);
+            if (empty($sampleData['sample_code'])) {
+                $sampleData['sample_code'] = 'S-' . date('Ymd') . '-' . rand(1000, 9999);
             }
 
+            $sampleData['client_id'] = $data['client_id'];
+            $sampleData['project_id'] = $data['project_id'] ?? null;
             $sampleData['created_by'] = Auth::id();
-            Sample::create($sampleData);
+            $sampleData['status'] = 'REGISTERED';
+
+            $fillable = ['sample_code', 'client_id', 'project_id', 'name', 'type', 'quantity', 'unit', 'status', 'created_by'];
+            $filtered = array_intersect_key($sampleData, array_flip($fillable));
+            Sample::create($filtered);
             $created++;
         }
 
-        return response()->json([
-            'created' => $created
-        ]);
+        Storage::disk('local')->delete($path);
+
+        return response()->json(['created' => $created]);
     }
 
     public function store(Request $request)
@@ -109,9 +129,18 @@ class SampleWebController extends Controller
         ]);
 
         $data['sample_code'] = 'S-' . date('Y') . '-' . str_pad(Sample::count() + 1, 4, '0', STR_PAD_LEFT);
+        $data['status'] = $data['status'] ?? 'REGISTERED';
         $data['created_by'] = Auth::id();
 
-        Sample::create($data);
+        $sample = Sample::create($data);
+
+        AuditLog::create([
+            'entity_type' => 'sample',
+            'entity_id' => $sample->id,
+            'action' => 'create',
+            'diff_json' => json_encode($data),
+            'user_id' => Auth::id(),
+        ]);
 
         return redirect()->route('samples.index')->with('success', 'Sample created successfully');
     }
@@ -130,6 +159,14 @@ class SampleWebController extends Controller
         ]);
 
         $sample->update($data);
+
+        AuditLog::create([
+            'entity_type' => 'sample',
+            'entity_id' => $sample->id,
+            'action' => 'update',
+            'diff_json' => json_encode($data),
+            'user_id' => Auth::id(),
+        ]);
 
         return redirect()->route('samples.index')->with('success', 'Sample updated successfully');
     }

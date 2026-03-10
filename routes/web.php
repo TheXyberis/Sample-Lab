@@ -28,6 +28,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('samples/import', fn()=>view('samples.import'))->name('samples.import');
     Route::get('samples/create-wizard', [SampleWizardController::class, 'showForm'])->name('samples.create-wizard');
     Route::post('samples/validate-step/{step}', [SampleWizardController::class, 'validateStep'])->name('samples.validate-step');
+    Route::post('samples/store-wizard', [SampleWizardController::class, 'storeFromWizard'])->name('samples.store-wizard');
     Route::resource('samples', SampleWebController::class);
 
     Route::resource('measurements', MeasurementController::class)->only(['index','create','edit','show','store','update']);
@@ -47,6 +48,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/{id}', [MethodController::class, 'update'])->name('methods.update');
 
         Route::post('/{id}/publish', [MethodController::class, 'publish'])->name('methods.publish');
+        Route::post('/{id}/version', [MethodController::class, 'version'])->name('methods.version');
     });
 
     Route::prefix('measurements')->group(function () {
@@ -63,6 +65,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{id}/results/unlock', [ResultController::class, 'unlock'])->name('results.unlock');
     });
 
-    Route::post('/samples/import/preview', [App\Http\Controllers\Api\SampleController::class, 'importPreview'])->name('samples.import.preview');
-    Route::post('/samples/import/confirm', [App\Http\Controllers\Api\SampleController::class, 'importConfirm'])->name('samples.import.confirm');
+    Route::post('/samples/import/preview', [SampleWebController::class, 'importPreview'])->name('samples.import.preview');
+    Route::post('/samples/import/confirm', [SampleWebController::class, 'importConfirm'])->name('samples.import.confirm');
 });

@@ -25,22 +25,23 @@
                     @forelse($measurements as $m) 
                     <tr> 
                         <td>{{ $m->id }}</td> 
-                        <td>{{ $m->sample->name }}</td> 
-                        <td>{{ $m->method->name }}</td> 
+                        <td>{{ $m->sample?->sample_code ?? '-' }} {{ $m->sample?->name ?? '' }}</td>
+                        <td>{{ $m->method?->name ?? '-' }}</td> 
                         <td>{{ $m->assignee?->name ?? '-' }}</td> 
                         <td> 
                             @php 
-                                $map = [ 
-                                    'PENDING' => 'secondary', 
-                                    'IN_PROGRESS' => 'info', 
-                                    'FINISHED' => 'success', 
-                                    'CANCELLED' => 'danger' 
+                                $map = [
+                                    'PLANNED' => 'secondary',
+                                    'RUNNING' => 'info',
+                                    'DONE' => 'success',
+                                    'CANCELLED' => 'danger',
+                                    'REPEAT_REQUIRED' => 'warning'
                                 ]; 
                                 $badge = $map[$m->status] ?? 'secondary'; 
                             @endphp 
                             <span class="badge bg-{{ $badge }}">{{ $m->status }}</span> 
                         </td> 
-                        <td>{{ $m->planned_at }}</td> 
+                        <td>{{ $m->planned_at ? $m->planned_at->format('Y-m-d H:i') : '-' }}</td> 
                         <td class="text-end"> 
                             <a href="{{ route('measurements.edit',$m->id) }}" class="btn btn-sm btn-outline-warning me-1">Edit</a> 
                             <a href="{{ route('results.page',$m->id) }}" class="btn btn-sm btn-outline-info me-1">Results</a> 

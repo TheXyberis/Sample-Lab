@@ -42,7 +42,19 @@
             <ul class="navbar-nav mb-2 mb-lg-0 d-flex align-items-center"> 
                 @auth 
                     <li class="nav-item me-2"> 
-                        <span class="nav-link text-muted">{{ Auth::user()->name }} ({{ Auth::user()->role }})</span> 
+                    <span class="nav-link text-muted d-flex align-items-center">
+    Your role is: 
+    <span class="badge ms-2 
+        {{ Auth::user()->role == 'Admin' ? 'bg-danger' : '' }}
+        {{ Auth::user()->role == 'Manager' ? 'bg-success' : '' }}
+        {{ Auth::user()->role == 'Laborant' ? 'bg-info text-dark' : '' }}
+        {{ Auth::user()->role == 'QC/Reviewer' ? 'bg-warning text-dark' : '' }}
+        {{ Auth::user()->role == 'Client' ? 'bg-secondary' : '' }}
+        {{ Auth::user()->role == 'Analyst' ? 'bg-light text-dark border' : '' }}
+    ">
+        {{ Auth::user()->role }}
+    </span>
+</span>
                     </li> 
                     <li class="nav-item"> 
                         <form method="POST" action="{{ route('logout') }}" class="d-flex align-items-center m-0 p-0"> 
@@ -68,7 +80,7 @@
     @endif 
     @if(session('error')) 
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-[3/9/2026 12:59 PM] вика флекс: {{ session('error') }} 
+            {{ session('error') }} 
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button> 
         </div> 
     @endif 

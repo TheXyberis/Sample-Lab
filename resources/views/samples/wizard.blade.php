@@ -201,6 +201,35 @@ document.addEventListener('DOMContentLoaded', function() {
 
     btnNext.addEventListener('click', function() {
         if (currentStep === totalSteps) {
+            const formData = new FormData();
+            formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
+            formData.append('client_id', document.querySelector('#step-1 [name="client_id"]').value);
+            formData.append('project_id', document.querySelector('#step-1 [name="project_id"]').value);
+            formData.append('name', document.querySelector('#step-2 [name="name"]').value);
+            formData.append('type', document.querySelector('#step-2 [name="type"]').value);
+            formData.append('quantity', document.querySelector('#step-3 [name="quantity"]').value || '');
+            formData.append('unit', document.querySelector('#step-3 [name="unit"]').value || '');
+            document.querySelectorAll('#step-4 input[name="method_ids[]"]:checked').forEach(cb => {
+                formData.append('method_ids[]', cb.value);
+            });
+
+            btnNext.disabled = true;
+            fetch('{{ route("samples.store-wizard") }}', {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+            })
+            .then(r => r.json().then(data => ({ ok: r.ok, data })))
+            .then(({ ok, data }) => {
+                if (ok && data.redirect) {
+                    window.location.href = data.redirect;
+                } else if (data.errors) {
+                    errorsEl.innerHTML = Object.values(data.errors).flat().join('<br>');
+                    errorsEl.classList.remove('d-none');
+                    btnNext.disabled = false;
+                }
+            })
+            .catch(() => { errorsEl.innerHTML = 'Network error'; errorsEl.classList.remove('d-none'); btnNext.disabled = false; });
             return;
         }
 

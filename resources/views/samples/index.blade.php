@@ -5,9 +5,10 @@
  
     <div class="d-flex justify-content-between align-items-center mb-3"> 
         <h2 class="text-primary mb-0">Samples</h2> 
-        <div class="btn-group"> 
-            <a href="{{ route('samples.create') }}" class="btn btn-primary">Create Sample</a> 
-            <a href="{{ route('samples.import') }}" class="btn btn-outline-secondary">Import CSV</a> 
+        <div class="btn-group">
+            <a href="{{ route('samples.create-wizard') }}" class="btn btn-primary">Create Sample (Wizard)</a>
+            <a href="{{ route('samples.create') }}" class="btn btn-outline-primary">Create Sample</a>
+            <a href="{{ route('samples.import') }}" class="btn btn-outline-secondary">Import CSV</a>
         </div> 
     </div> 
  
@@ -77,8 +78,8 @@
                         </tr> 
                     @empty 
                         <tr> 
-                            <td colspan="7" class="text-center text-muted py-4"> 
-                                No samples found — try changing filters or <a href="{{ route('samples.create') }}">create a new sample</a>. 
+                            <td colspan="7" class="text-center text-muted py-5">
+                                No samples found. <a href="{{ route('samples.create-wizard') }}">Create via Wizard</a> or <a href="{{ route('samples.import') }}">Import CSV</a>. 
                             </td> 
                         </tr>
                         @endforelse 
