@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Sample;
 use App\Models\Measurement;
 use App\Models\AuditLog;
+use App\Models\Client;
+use App\Models\Project;
 use Illuminate\Support\Facades\Auth;
 
 class SampleWizardController extends Controller
@@ -19,8 +21,10 @@ class SampleWizardController extends Controller
     {
         $rules = match ($step) {
             1 => [
-                'client_id' => 'required|exists:clients,id',
-                'project_id' => 'required|exists:projects,id',
+                'client_id' => 'required',
+                'project_id' => 'required',
+                'new_client_name' => 'nullable|string|max:255|required_if:client_id,<0',
+                'new_project_name' => 'nullable|string|max:255|required_if:project_id,<0',
             ],
             2 => [
                 'name' => 'required|string|max:255',
@@ -47,6 +51,32 @@ class SampleWizardController extends Controller
             ], 422);
         }
 
+        if ($step === 1) {
+            $clientId = $request->input('client_id');
+            $projectId = $request->input('project_id');
+            
+            if ($clientId >= 0 && !Client::find($clientId)) {
+                return response()->json([
+                    'valid' => false,
+                    'errors' => ['client_id' => ['Selected client is invalid.']],
+                ], 422);
+            }
+            
+            if ($projectId >= 0 && !Project::find($projectId)) {
+                return response()->json([
+                    'valid' => false,
+                    'errors' => ['project_id' => ['Selected project is invalid.']],
+                ], 422);
+            }
+            
+            if ($projectId < 0 && empty($clientId)) {
+                return response()->json([
+                    'valid' => false,
+                    'errors' => ['project_id' => ['Please select or create a client first before creating a new project.']],
+                ], 422);
+            }
+        }
+
         $validator = validator($request->all(), $rules);
 
         if ($validator->fails()) {
@@ -65,8 +95,10 @@ class SampleWizardController extends Controller
     public function storeFromWizard(Request $request)
     {
         $data = $request->validate([
-            'client_id' => 'required|exists:clients,id',
-            'project_id' => 'required|exists:projects,id',
+            'client_id' => 'required',
+            'project_id' => 'required',
+            'new_client_name' => 'nullable|string|max:255|required_if:client_id,<0',
+            'new_project_name' => 'nullable|string|max:255|required_if:project_id,<0',
             'name' => 'required|string|max:255',
             'type' => 'required|string|max:255',
             'quantity' => 'nullable|numeric',
@@ -75,11 +107,36 @@ class SampleWizardController extends Controller
             'method_ids.*' => 'exists:methods,id',
         ]);
 
-        $data['sample_code'] = 'S-' . date('Y') . '-' . str_pad(Sample::count() + 1, 4, '0', STR_PAD_LEFT);
-        $data['status'] = 'REGISTERED';
-        $data['created_by'] = Auth::id();
+        if ($data['client_id'] < 0) {
+            $client = Client::create(['name' => $data['new_client_name']]);
+            $clientId = $client->id;
+        } else {
+            $clientId = $data['client_id'];
+        }
 
-        $sample = Sample::create($data);
+        if ($data['project_id'] < 0) {
+            $project = Project::create([
+                'name' => $data['new_project_name'],
+                'client_id' => $clientId
+            ]);
+            $projectId = $project->id;
+        } else {
+            $projectId = $data['project_id'];
+        }
+
+        $sampleData = [
+            'client_id' => $clientId,
+            'project_id' => $projectId,
+            'name' => $data['name'],
+            'type' => $data['type'],
+            'quantity' => $data['quantity'],
+            'unit' => $data['unit'],
+            'sample_code' => 'S-' . date('Y') . '-' . str_pad(Sample::count() + 1, 4, '0', STR_PAD_LEFT),
+            'status' => 'REGISTERED',
+            'created_by' => Auth::id(),
+        ];
+
+        $sample = Sample::create($sampleData);
 
         foreach ($data['method_ids'] as $methodId) {
             Measurement::create([

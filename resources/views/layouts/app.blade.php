@@ -26,7 +26,7 @@
             <ul class="navbar-nav me-auto mb-2 mb-lg-0"> 
                 @auth 
                     <li class="nav-item"><a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">Dashboard</a></li> 
-                     
+               
                     <li class="nav-item"><a class="nav-link {{ request()->routeIs('samples.index') ? 'active' : '' }}" href="{{ route('samples.index') }}">Samples</a></li> 
                     <li class="nav-item"><a class="nav-link {{ request()->routeIs('samples.import') ? 'active' : '' }}" href="{{ route('samples.import') }}">Import CSV</a></li> 
                      
@@ -43,18 +43,17 @@
                 @auth 
                     <li class="nav-item me-2"> 
                     <span class="nav-link text-muted d-flex align-items-center">
-    Your role is: 
-    <span class="badge ms-2 
-        {{ Auth::user()->role == 'Admin' ? 'bg-danger' : '' }}
-        {{ Auth::user()->role == 'Manager' ? 'bg-success' : '' }}
-        {{ Auth::user()->role == 'Laborant' ? 'bg-info text-dark' : '' }}
-        {{ Auth::user()->role == 'QC/Reviewer' ? 'bg-warning text-dark' : '' }}
-        {{ Auth::user()->role == 'Client' ? 'bg-secondary' : '' }}
-        {{ Auth::user()->role == 'Analyst' ? 'bg-light text-dark border' : '' }}
-    ">
-        {{ Auth::user()->role }}
-    </span>
-</span>
+                        Your role is:  
+                        <span class="badge ms-2 
+                            {{ Auth::user()->role == 'Admin' ? 'bg-danger' : '' }} {{-- czerwony --}}
+                            {{ Auth::user()->role == 'Manager' ? 'bg-success' : '' }} {{-- zielony --}}
+                            {{ Auth::user()->role == 'Laborant' ? 'bg-info text-dark' : '' }} {{-- niebieski --}}
+                            {{ Auth::user()->role == 'QC/Reviewer' ? 'bg-warning text-dark' : '' }} {{-- żółty --}}
+                            {{ Auth::user()->role == 'Client' ? 'bg-secondary' : '' }}  {{-- szary --}}
+                            {{ Auth::user()->role == 'Analyst' ? 'bg-light text-dark border' : '' }}" > {{-- jasnoszary --}}
+                            {{ Auth::user()->role }}
+                        </span>
+                    </span>
                     </li> 
                     <li class="nav-item"> 
                         <form method="POST" action="{{ route('logout') }}" class="d-flex align-items-center m-0 p-0"> 
