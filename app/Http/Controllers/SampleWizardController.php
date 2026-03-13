@@ -124,6 +124,7 @@ class SampleWizardController extends Controller
             $projectId = $data['project_id'];
         }
 
+        $sampleCode = Sample::generateSampleCode();
         $sampleData = [
             'client_id' => $clientId,
             'project_id' => $projectId,
@@ -131,18 +132,28 @@ class SampleWizardController extends Controller
             'type' => $data['type'],
             'quantity' => $data['quantity'],
             'unit' => $data['unit'],
-            'sample_code' => 'S-' . date('Y') . '-' . str_pad(Sample::count() + 1, 4, '0', STR_PAD_LEFT),
+            'sample_code' => $sampleCode,
+            'barcode_value' => $sampleCode,
             'status' => 'REGISTERED',
             'created_by' => Auth::id(),
         ];
 
         $sample = Sample::create($sampleData);
+        $sample->update(['qr_value' => route('samples.show', $sample->id)]);
 
         foreach ($data['method_ids'] as $methodId) {
-            Measurement::create([
+            $measurement = Measurement::create([
                 'sample_id' => $sample->id,
                 'method_id' => $methodId,
                 'status' => 'PLANNED',
+                'assignee_id' => Auth::id(),
+                'planned_at' => now()->addDay(),
+                'priority' => 1
+            ]);
+            
+            \App\Models\ResultSet::create([
+                'measurement_id' => $measurement->id,
+                'status' => 'DRAFT'
             ]);
         }
 

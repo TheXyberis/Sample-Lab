@@ -9,4 +9,8 @@ class AuditLog extends Model
     protected $fillable = [
         'entity_type', 'entity_id', 'diff_json', 'user_id', 'action'
     ];
+
+    public function user() {
+        return $this->belongsTo(User::class);
+    }
 }

@@ -28,7 +28,7 @@ class SampleController extends Controller
             $rows = Excel::toArray(new \stdClass(), $fullPath);
             
             if (empty($rows) || empty($rows[0])) {
-                return response()->json(['error' => 'Файл пуст'], 422);
+                return response()->json(['error' => 'File is empty'], 422);
             }
 
             return response()->json([

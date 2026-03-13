@@ -55,11 +55,12 @@
                             </form> 
                         </td> 
                     </tr> 
-                    @empty 
-                    <tr> 
-                        <td colspan="7" class="text-center text-muted py-4"> 
-                            No measurements found — <a href="{{ route('measurements.create') }}">create a new measurement</a>. 
-                        </td> 
+                    @empty
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-5">
+                            <i class="fas fa-flask fa-2x mb-2 d-block"></i>
+                            No measurements found. <a href="{{ route('measurements.create') }}">Create a new measurement</a> or <a href="{{ route('samples.create-wizard') }}">register a sample</a> first.
+                        </td>
                     </tr> 
                     @endforelse 
                 </tbody> 

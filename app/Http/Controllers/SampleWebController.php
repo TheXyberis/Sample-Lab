@@ -7,10 +7,21 @@ use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Sample;
+use App\Models\Client;
+use App\Models\Project;
 use App\Models\AuditLog;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Milon\Barcode\Facades\DNS1DFacade as DNS1D;
 
 class SampleWebController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:samples:read')->only(['index', 'show']);
+        $this->middleware('permission:samples:create')->only(['create', 'store']);
+        $this->middleware('permission:samples:update')->only(['edit', 'update']);
+        $this->middleware('permission:samples:delete')->only(['destroy']);
+    }
     public function index(Request $request){
         $query = Sample::with(['client', 'project']);
         if ($request->filled('q')) {
@@ -44,7 +55,7 @@ class SampleWebController extends Controller
     public function importPreview(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:csv,txt'
+            'file' => 'required|file'
         ]);
 
         $file = $request->file('file');
@@ -128,11 +139,13 @@ class SampleWebController extends Controller
             'unit' => 'nullable|string',
         ]);
 
-        $data['sample_code'] = 'S-' . date('Y') . '-' . str_pad(Sample::count() + 1, 4, '0', STR_PAD_LEFT);
+        $data['sample_code'] = Sample::generateSampleCode();
         $data['status'] = $data['status'] ?? 'REGISTERED';
         $data['created_by'] = Auth::id();
+        $data['barcode_value'] = $data['sample_code'];
 
         $sample = Sample::create($data);
+        $sample->update(['qr_value' => route('samples.show', $sample->id)]);
 
         AuditLog::create([
             'entity_type' => 'sample',
@@ -158,13 +171,22 @@ class SampleWebController extends Controller
             'unit' => 'nullable|string',
         ]);
 
+        $oldValues = $sample->getAttributes();
         $sample->update($data);
+        $newValues = $sample->getAttributes();
+        
+        $diff = [];
+        foreach ($oldValues as $key => $oldValue) {
+            if (isset($newValues[$key]) && $oldValue !== $newValues[$key]) {
+                $diff[$key] = ['old' => $oldValue, 'new' => $newValues[$key]];
+            }
+        }
 
         AuditLog::create([
             'entity_type' => 'sample',
             'entity_id' => $sample->id,
             'action' => 'update',
-            'diff_json' => json_encode($data),
+            'diff_json' => json_encode($diff),
             'user_id' => Auth::id(),
         ]);
 
@@ -177,5 +199,27 @@ class SampleWebController extends Controller
         $sample->delete();
 
         return redirect()->route('samples.index')->with('success', 'Sample deleted successfully');
+    }
+    
+    public function generateLabel($id)
+    {
+        $sample = Sample::findOrFail($id);
+        $code = $sample->barcode_value ?? $sample->sample_code;
+
+        $qrSvg = QrCode::format('svg')->size(200)->generate(route('samples.show', $id));
+        $code128Png = DNS1D::getBarcodePNG($code, 'C128', 2, 50);
+
+        return view('samples.label', compact('sample', 'qrSvg', 'code128Png'));
+    }
+    
+    public function downloadBarcode($id)
+    {
+        $sample = Sample::findOrFail($id);
+        $code = $sample->barcode_value ?? $sample->sample_code;
+        $png = base64_decode(DNS1D::getBarcodePNG($code, 'C128', 2, 50));
+
+        return response($png)
+            ->header('Content-Type', 'image/png')
+            ->header('Content-Disposition', 'attachment; filename="barcode_' . $sample->sample_code . '.png"');
     }
 }

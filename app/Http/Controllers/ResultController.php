@@ -9,10 +9,19 @@ use App\Models\Measurement;
 use App\Models\AuditLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 
 class ResultController extends Controller
 {
+    public function qcQueue()
+    {
+        $items = ResultSet::with(['measurement.sample.client', 'measurement.method', 'submitter'])
+            ->where('status', 'SUBMITTED')
+            ->orderBy('submitted_at', 'asc')
+            ->paginate(20);
+
+        return view('qc.queue', compact('items'));
+    }
+
     public function index($measurementId)
     {
         return ResultSet::with('results')
@@ -23,7 +32,7 @@ class ResultController extends Controller
 
     public function webIndex($measurementId)
     {
-        $measurement = Measurement::with(['method', 'resultSets.results'])->findOrFail($measurementId);
+        $measurement = Measurement::with(['method', 'resultSets.results', 'resultSets.submitter'])->findOrFail($measurementId);
         $method = $measurement->method;
 
         $schemaData = is_array($method->schema_json) ? $method->schema_json : json_decode($method->schema_json, true);
@@ -32,15 +41,20 @@ class ResultController extends Controller
         $results = [];
         $flags = [];
 
-        $resultSet = $measurement->resultSets->sortByDesc('created_at')->first();
-        if ($resultSet) {
-            foreach ($resultSet->results as $r) {
+        $currentResultSet = $measurement->resultSets->sortByDesc('created_at')->first();
+        if ($currentResultSet) {
+            foreach ($currentResultSet->results as $r) {
                 $results[$r->field_key] = $r->value_text ?? $r->value_num;
                 $flags[$r->field_key] = is_array($r->flags_json) ? $r->flags_json : json_decode($r->flags_json, true);
             }
+        } else {
+            $currentResultSet = new \stdClass();
+            $currentResultSet->status = 'DRAFT';
+            $currentResultSet->submitted_by = null;
+            $currentResultSet->submitter = null;
         }
 
-        return view('measurements.results', compact('measurement', 'schema', 'results', 'flags'));
+        return view('measurements.results', compact('measurement', 'schema', 'results', 'flags', 'currentResultSet'));
     }
 
     public function saveDraft(Request $request, $id)
@@ -54,18 +68,6 @@ class ResultController extends Controller
 
         $resultsInput = $request->input('results', []);
 
-        $errors = [];
-        foreach ($schema as $field) {
-            $key = $field['key'] ?? null;
-            if (!$key) continue;
-            if (!empty($field['required']) && ( !isset($resultsInput[$key]) || $resultsInput[$key] === '' )) {
-                $errors[$key] = 'Field is required';
-            }
-        }
-        if (!empty($errors)) {
-            throw ValidationException::withMessages($errors);
-        }
-
         $resultSet = ResultSet::firstOrCreate(
             [
                 'measurement_id' => $measurement->id,
@@ -73,6 +75,8 @@ class ResultController extends Controller
             ],
             []
         );
+
+        $oldResults = $resultSet->results->keyBy('field_key')->map(fn($r) => $r->value_text ?? $r->value_num)->toArray();
 
         DB::transaction(function () use ($schema, $resultsInput, $resultSet) {
             foreach ($schema as $field) {
@@ -84,7 +88,7 @@ class ResultController extends Controller
                 $update = [
                     'flags_json' => json_encode([]),
                 ];
-                if ($field['type'] === 'number') {
+                if (($field['type'] ?? '') === 'number') {
                     $update['value_num'] = $value === null || $value === '' ? null : (float)$value;
                     $update['value_text'] = null;
                 } else {
@@ -99,10 +103,21 @@ class ResultController extends Controller
             }
         });
 
+        $resultSet->load('results');
+        $newResults = $resultSet->results->keyBy('field_key')->map(fn($r) => $r->value_text ?? $r->value_num)->toArray();
+        $diff = [];
+        foreach (array_unique(array_merge(array_keys($oldResults), array_keys($newResults))) as $k) {
+            $old = $oldResults[$k] ?? null;
+            $new = $newResults[$k] ?? null;
+            if ($old !== $new) {
+                $diff[$k] = ['old' => $old, 'new' => $new];
+            }
+        }
+
         AuditLog::create([
             'entity_type' => 'result_set',
             'entity_id' => $resultSet->id,
-            'diff_json' => json_encode(['action' => 'save_draft']),
+            'diff_json' => json_encode($diff ?: ['action' => 'save_draft']),
             'user_id' => Auth::id(),
             'action' => 'save_draft'
         ]);
@@ -112,11 +127,28 @@ class ResultController extends Controller
 
     public function submit(Request $request, $id)
     {
-        $measurement = Measurement::findOrFail($id);
+        $measurement = Measurement::with('method')->findOrFail($id);
+        $resultSet = $measurement->resultSets()->where('status', 'DRAFT')->with('results')->latest()->first();
 
-        $resultSet = $measurement->resultSets()->where('status', 'DRAFT')->latest()->first();
         if (!$resultSet) {
-            return response()->json(['error' => 'No draft found'], 400);
+            return response()->json(['error' => 'No draft found. Save draft first.'], 400);
+        }
+
+        $schemaData = is_array($measurement->method->schema_json)
+            ? $measurement->method->schema_json
+            : json_decode($measurement->method->schema_json, true);
+        $schema = $schemaData['fields'] ?? [];
+        $resultsByKey = $resultSet->results->keyBy('field_key');
+
+        foreach ($schema as $field) {
+            if (empty($field['required'])) continue;
+            $key = $field['key'] ?? null;
+            if (!$key) continue;
+            $r = $resultsByKey->get($key);
+            $val = $r ? ($r->value_text ?? $r->value_num) : null;
+            if ($val === null || $val === '') {
+                return response()->json(['error' => 'Required field "' . ($field['label'] ?? $key) . '" is empty.'], 422);
+            }
         }
 
         $resultSet->status = 'SUBMITTED';
@@ -194,7 +226,7 @@ class ResultController extends Controller
     public function unlock(Request $request, $measurementId)
     {
         $user = Auth::user();
-        if (!in_array($user->role, ['QC', 'Manager'])) {
+        if (!in_array($user->role, ['QC/Reviewer', 'Manager', 'Admin'])) {
             return response()->json(['error'=>'Unauthorized'],403);
         }
         $resultSet = ResultSet::where('measurement_id', $measurementId)->latest()->firstOrFail();

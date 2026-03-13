@@ -52,11 +52,13 @@ document.addEventListener("DOMContentLoaded", function () {
         form.append('file', file); 
  
         try { 
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
             const res = await fetch('{{ route("samples.import.preview") }}', { 
                 method: 'POST', 
                 headers: { 
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 
-                    'Accept': 'application/json' 
+                    'X-CSRF-TOKEN': token || '',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
                 }, 
                 body: form, 
                 credentials: 'same-origin' 

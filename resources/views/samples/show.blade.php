@@ -5,11 +5,19 @@
     <div class="d-flex justify-content-between align-items-center mb-4"> 
         <h2 class="text-primary fw-bold">Sample Details: {{ $sample->sample_code }}</h2> 
         <div> 
-            <a href="{{ route('samples.edit', $sample->id) }}" class="btn btn-primary me-2"> 
-                <i class="bi bi-pencil-square"></i> Edit 
+            <a href="{{ route('samples.label', $sample->id) }}" class="btn btn-success me-2" target="_blank"> 
+                <i class="fas fa-qrcode"></i> Print Label 
             </a> 
+            <a href="{{ route('samples.barcode', $sample->id) }}" class="btn btn-info me-2" download> 
+                <i class="fas fa-download"></i> Download QR 
+            </a> 
+            @if(Auth::user()->hasRole(['Admin', 'Manager', 'Laborant']))
+                <a href="{{ route('samples.edit', $sample->id) }}" class="btn btn-primary me-2"> 
+                    <i class="fas fa-edit"></i> Edit 
+                </a> 
+            @endif
             <a href="{{ route('samples.index') }}" class="btn btn-secondary"> 
-                <i class="bi bi-arrow-left-circle"></i> Back 
+                <i class="fas fa-arrow-left"></i> Back 
             </a> 
         </div> 
     </div> 
@@ -30,13 +38,7 @@
         <div class="col-md-4">
             <div class="card shadow-sm border-success h-100 p-3">
                 <h6 class="text-muted">Status</h6>
-                @php
-                    $statusBadge = match($sample->status ?? '') {
-                        'REGISTERED' => 'secondary', 'IN_PROGRESS' => 'info', 'COMPLETED' => 'success',
-                        'ARCHIVED' => 'dark', 'DISPOSED' => 'danger', default => 'secondary'
-                    };
-                @endphp
-                <span class="badge bg-{{ $statusBadge }} fs-6">{{ $sample->status }}</span>
+                <span class="badge bg-{{ $sample->status_badge }} fs-6">{{ $sample->status }}</span>
             </div>
         </div> 
     </div> 
@@ -54,12 +56,29 @@
         </table> 
     </div> 
  
-    @if($sample->qr_value)
-    <div class="mb-4">
-        <h5>QR Code</h5>
-        <img src="{{ asset($sample->qr_value) }}" alt="QR Code" class="img-thumbnail" style="max-width:180px;">
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-primary h-100 p-3">
+                <h6 class="text-muted">QR Code</h6>
+                <div class="text-center">
+                    <img src="{{ route('samples.barcode', $sample->id) }}" alt="QR Code" class="img-thumbnail" style="max-width:150px;">
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm border-info h-100 p-3">
+                <h6 class="text-muted">Quick Actions</h6>
+                <div class="d-grid gap-2">
+                    <a href="{{ route('samples.label', $sample->id) }}" class="btn btn-success btn-sm" target="_blank">
+                        <i class="fas fa-print"></i> Print Label
+                    </a>
+                    <a href="{{ route('samples.barcode', $sample->id) }}" class="btn btn-info btn-sm" download>
+                        <i class="fas fa-download"></i> Download QR
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
-    @endif
 
     @if($sample->measurements && $sample->measurements->count() > 0)
     <div class="card shadow-sm mb-4">

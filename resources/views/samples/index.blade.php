@@ -60,11 +60,11 @@
                             <td> 
                                 @php 
                                     $map = [ 
-                                        'REGISTERED' => 'secondary', 
-                                        'IN_PROGRESS' => 'info', 
+                                        'REGISTERED' => 'primary', 
+                                        'IN_PROGRESS' => 'warning', 
                                         'COMPLETED' => 'success', 
-                                        'ARCHIVED' => 'dark', 
-                                        'DISPOSED' => 'danger', 
+                                        'ARCHIVED' => 'secondary', 
+                                        'DISPOSED' => 'dark', 
                                     ]; 
                                     $badge = $map[$sample->status] ?? 'secondary'; 
                                 @endphp 

@@ -41,11 +41,12 @@
                             </form> 
                         </td> 
                     </tr> 
-                    @empty 
-                    <tr> 
-                        <td colspan="5" class="text-center text-muted py-4"> 
-                            No methods found — <a href="{{ route('methods.create') }}">create a new method</a>. 
-                        </td> 
+                    @empty
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-5">
+                            <i class="fas fa-vial fa-2x mb-2 d-block"></i>
+                            No methods found. <a href="{{ route('methods.create') }}">Create a new method</a> to define analysis procedures.
+                        </td>
                     </tr> 
                     @endforelse 
                 </tbody> 

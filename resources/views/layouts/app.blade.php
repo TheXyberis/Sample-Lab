@@ -5,8 +5,9 @@
     <meta name="csrf-token" content="{{ csrf_token() }}"> 
     <title>SampleLab</title> 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"> 
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"> 
     <style> 
-        body { background-color: #f8f9fa; } 
+        body { background-color: #f8f9fa; padding-top: 56px; } 
         .navbar-brand { font-weight: 600; color: #0d6efd; } 
         .card { border-radius: 0.5rem; } 
         .badge { text-transform: uppercase; font-size: 0.85em; } 
@@ -16,7 +17,7 @@
 </head> 
 <body> 
  
-<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4"> 
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top"> 
     <div class="container"> 
         <a class="navbar-brand" href="{{ route('dashboard') }}">SampleLab</a> 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"> 
@@ -44,13 +45,13 @@
                     <li class="nav-item me-2"> 
                     <span class="nav-link text-muted d-flex align-items-center">
                         Your role is:  
-                        <span class="badge ms-2 
-                            {{ Auth::user()->role == 'Admin' ? 'bg-danger' : '' }} {{-- czerwony --}}
-                            {{ Auth::user()->role == 'Manager' ? 'bg-success' : '' }} {{-- zielony --}}
-                            {{ Auth::user()->role == 'Laborant' ? 'bg-info text-dark' : '' }} {{-- niebieski --}}
-                            {{ Auth::user()->role == 'QC/Reviewer' ? 'bg-warning text-dark' : '' }} {{-- żółty --}}
-                            {{ Auth::user()->role == 'Client' ? 'bg-secondary' : '' }}  {{-- szary --}}
-                            {{ Auth::user()->role == 'Analyst' ? 'bg-light text-dark border' : '' }}" > {{-- jasnoszary --}}
+                        <span class="badge ms-2
+                            {{ Auth::user()->role == 'Admin' ? 'bg-danger' : '' }}
+                            {{ Auth::user()->role == 'Manager' ? 'bg-success' : '' }}
+                            {{ Auth::user()->role == 'Laborant' ? 'bg-info text-dark' : '' }}
+                            {{ Auth::user()->role == 'QC/Reviewer' ? 'bg-warning text-dark' : '' }}
+                            {{ Auth::user()->role == 'Client' ? 'bg-secondary' : '' }}
+                            {{ Auth::user()->role == 'Analyst' ? 'bg-light text-dark border' : '' }}"> {{-- jasnoszary --}}
                             {{ Auth::user()->role }}
                         </span>
                     </span>
@@ -70,7 +71,7 @@
     </div> 
 </nav> 
  
-<div class="container"> 
+<div class="container mb-4"> 
     @if(session('success')) 
         <div class="alert alert-success alert-dismissible fade show" role="alert"> 
             {{ session('success') }} 
