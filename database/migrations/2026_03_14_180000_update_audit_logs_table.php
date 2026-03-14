@@ -15,7 +15,6 @@ return new class extends Migration
             $table->string('ip_address', 45)->nullable()->after('user_id');
             $table->text('user_agent')->nullable()->after('ip_address');
             
-            // Add indexes for performance
             $table->index(['entity_type', 'entity_id']);
             $table->index('action');
             $table->index('user_id');

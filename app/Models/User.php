@@ -8,9 +8,6 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Laravel\Sanctum\HasApiTokens;
 
-/**
- * @method \Laravel\Sanctum\NewAccessToken createToken(string $name, array $abilities = [])
- */
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
@@ -34,7 +31,6 @@ class User extends Authenticatable
         ];
     }
 
-    // Legacy method for backward compatibility - remove after full migration
     public function hasRole($roles)
     {
         if (is_array($roles)) {
@@ -54,7 +50,6 @@ class User extends Authenticatable
         return $this->roles->first()?->name ?? 'User';
     }
 
-    // Relationships
     public function createdSamples()
     {
         return $this->hasMany(Sample::class, 'created_by');

@@ -12,12 +12,10 @@ class ResultUpdateRequest extends FormRequest
         $user = auth()->user();
         $measurement = $this->route('measurement');
         
-        // Check if user has permission to edit results
         if (!$user->hasPermissionTo('results:edit')) {
             return false;
         }
         
-        // Check if result set is not locked
         $currentResultSet = $measurement->resultSets->sortByDesc('created_at')->first();
         if ($currentResultSet && $currentResultSet->status === 'LOCKED') {
             return $user->hasPermissionTo('results:unlock');
@@ -34,7 +32,6 @@ class ResultUpdateRequest extends FormRequest
             'results.*.value' => 'required',
         ];
 
-        // Add field-specific validation based on method schema
         $measurement = $this->route('measurement');
         $schema = $measurement->method->schema_json['fields'] ?? [];
 
@@ -44,7 +41,6 @@ class ResultUpdateRequest extends FormRequest
             if ($fieldSchema) {
                 $fieldRules = [];
                 
-                // Type validation
                 switch ($fieldSchema['type'] ?? 'text') {
                     case 'number':
                         $fieldRules[] = 'numeric';

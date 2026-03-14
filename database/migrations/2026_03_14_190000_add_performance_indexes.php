@@ -8,7 +8,6 @@ return new class extends Migration
 {
     public function up()
     {
-        // Samples table indexes
         Schema::table('samples', function (Blueprint $table) {
             $table->index(['client_id', 'status']);
             $table->index(['project_id', 'status']);
@@ -17,7 +16,6 @@ return new class extends Migration
             $table->index(['status']);
         });
 
-        // Measurements table indexes
         Schema::table('measurements', function (Blueprint $table) {
             $table->index(['sample_id', 'status']);
             $table->index(['method_id']);
@@ -26,7 +24,6 @@ return new class extends Migration
             $table->index(['status']);
         });
 
-        // Result sets table indexes
         Schema::table('result_sets', function (Blueprint $table) {
             $table->index(['measurement_id', 'status']);
             $table->index(['submitted_by', 'status']);
@@ -36,27 +33,23 @@ return new class extends Migration
             $table->index(['status']);
         });
 
-        // Results table indexes
         Schema::table('results', function (Blueprint $table) {
             $table->index(['result_set_id', 'field_key']);
             $table->index(['result_set_id']);
         });
 
-        // Audit logs table indexes (additional)
         Schema::table('audit_logs', function (Blueprint $table) {
             $table->index(['entity_type', 'entity_id', 'created_at']);
             $table->index(['user_id', 'created_at']);
             $table->index(['action', 'created_at']);
         });
 
-        // Methods table indexes
         Schema::table('methods', function (Blueprint $table) {
             $table->index(['status']);
             $table->index(['created_by']);
             $table->index(['name']);
         });
 
-        // Users table indexes
         Schema::table('users', function (Blueprint $table) {
             $table->index(['email']);
             $table->index(['created_at']);
@@ -65,7 +58,6 @@ return new class extends Migration
 
     public function down()
     {
-        // Drop indexes (simplified - in production you'd want to be more specific)
         Schema::table('samples', function (Blueprint $table) {
             $table->dropIndex(['client_id', 'status']);
             $table->dropIndex(['project_id', 'status']);

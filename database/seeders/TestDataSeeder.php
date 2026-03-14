@@ -9,13 +9,11 @@ use App\Models\Project;
 use App\Models\Measurement;
 use App\Models\Method;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 
 class TestDataSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create test clients
         $clients = [
             ['name' => 'PharmaCorp International', 'contact_email' => 'lab@pharmacorp.com'],
             ['name' => 'Acme Food Solutions', 'contact_email' => 'quality@acmefood.com'],
@@ -26,7 +24,6 @@ class TestDataSeeder extends Seeder
             Client::firstOrCreate(['name' => $client['name']], $client);
         }
 
-        // Create test projects
         $projects = [
             ['name' => 'Vax-Alpha-Freeze-Dry Study', 'client_id' => 1],
             ['name' => 'Food Safety Validation', 'client_id' => 2],
@@ -37,7 +34,6 @@ class TestDataSeeder extends Seeder
             Project::firstOrCreate(['name' => $project['name']], $project);
         }
 
-        // Create test samples
         $samples = [
             [
                 'sample_code' => 'S-2026-0006',
@@ -111,12 +107,10 @@ class TestDataSeeder extends Seeder
             Sample::firstOrCreate(['sample_code' => $sample['sample_code']], $sample);
         }
 
-        // Create measurements for samples
         $methods = Method::all();
         $samples = Sample::all();
 
         foreach ($samples as $sample) {
-            // Add 2-4 measurements per sample
             $measurementCount = rand(2, 4);
             $selectedMethods = $methods->random($measurementCount);
 
@@ -128,29 +122,8 @@ class TestDataSeeder extends Seeder
                     'status' => in_array($sample->status, ['IN_PROGRESS', 'COMPLETED']) ? 'DONE' : 'PLANNED',
                     'assignee_id' => 1,
                     'planned_at' => now()->addDays($index),
-                    'priority' => 1, // normal priority
+                    'priority' => 1,
                 ]);
-            }
-        }
-
-        // Create additional test users with roles
-        $testUsers = [
-            ['name' => 'John Laborant', 'email' => 'laborant@samplelab.local', 'role' => 'Laborant'],
-            ['name' => 'Jane QC', 'email' => 'qc@samplelab.local', 'role' => 'QC/Reviewer'],
-            ['name' => 'Bob Manager', 'email' => 'manager@samplelab.local', 'role' => 'Manager'],
-            ['name' => 'Alice Client', 'email' => 'client@samplelab.local', 'role' => 'Client'],
-        ];
-
-        foreach ($testUsers as $userData) {
-            $user = User::firstOrCreate(['email' => $userData['email']], [
-                'name' => $userData['name'],
-                'password' => Hash::make('password123'),
-            ]);
-
-            // Assign role
-            $role = \Spatie\Permission\Models\Role::where('name', $userData['role'])->first();
-            if ($role) {
-                $user->assignRole($role);
             }
         }
     }

@@ -27,13 +27,11 @@ class AuditLog extends Model
         'diff_json' => 'json',
     ];
 
-    // Relationships
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    // Scopes
     public function scopeForEntity($query, $entityType, $entityId)
     {
         return $query->where('entity_type', $entityType)->where('entity_id', $entityId);
@@ -49,7 +47,6 @@ class AuditLog extends Model
         return $query->where('user_id', $userId);
     }
 
-    // Static methods for creating audit logs
     public static function log($entityType, $entityId, $action, $oldValues = null, $newValues = null, $userId = null)
     {
         $diff = null;
@@ -75,12 +72,10 @@ class AuditLog extends Model
     {
         $diff = [];
         
-        // Handle arrays/objects
         if (is_array($old) || is_object($old)) {
             $oldArray = (array) $old;
             $newArray = (array) $new;
             
-            // Find added keys
             foreach ($newArray as $key => $value) {
                 if (!array_key_exists($key, $oldArray)) {
                     $diff[$key] = [
@@ -96,7 +91,6 @@ class AuditLog extends Model
                 }
             }
             
-            // Find removed keys
             foreach ($oldArray as $key => $value) {
                 if (!array_key_exists($key, $newArray)) {
                     $diff[$key] = [
@@ -106,7 +100,6 @@ class AuditLog extends Model
                 }
             }
         } else {
-            // Handle simple values
             if ($old !== $new) {
                 $diff = [
                     'type' => 'changed',
@@ -119,7 +112,6 @@ class AuditLog extends Model
         return $diff;
     }
 
-    // Accessors
     public function getFormattedDiffAttribute()
     {
         if (!$this->diff_json) {
