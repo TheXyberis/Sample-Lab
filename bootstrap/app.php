@@ -13,6 +13,7 @@ use App\Http\Controllers\AuditController;
 use App\Http\Controllers\ReportController;
 use App\Http\Middleware\RoleMiddleware;
 use App\Http\Middleware\PermissionMiddleware;
+use App\Http\Middleware\CheckPermission;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -25,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'permission' => \App\Http\Middleware\PermissionMiddleware::class,
+            'can' => \App\Http\Middleware\CheckPermission::class,
         ]);
         
         $middleware->validateCsrfTokens([

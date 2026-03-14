@@ -15,8 +15,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        $this->call(RoleAndUserSeeder::class);
+        // Run seeders in correct order
+        $this->call([
+            RbacSeeder::class,        // Create RBAC system (roles, permissions)
+            MethodSeeder::class,      // Create test methods with schema_json
+            TestDataSeeder::class,    // Create test samples and measurements
+            RoleAndUserSeeder::class,  // Create existing users (for compatibility)
+        ]);
     }
 }

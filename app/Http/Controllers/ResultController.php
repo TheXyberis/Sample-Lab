@@ -59,6 +59,13 @@ class ResultController extends Controller
 
     public function saveDraft(Request $request, $id)
     {
+        $user = auth()->user();
+        
+        // Check permission
+        if (!$user->hasPermissionTo('results:edit')) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
         $measurement = Measurement::with('method')->findOrFail($id);
 
         $schemaData = is_array($measurement->method->schema_json)
@@ -78,7 +85,7 @@ class ResultController extends Controller
 
         $oldResults = $resultSet->results->keyBy('field_key')->map(fn($r) => $r->value_text ?? $r->value_num)->toArray();
 
-        DB::transaction(function () use ($schema, $resultsInput, $resultSet) {
+        DB::transaction(function () use ($schema, $resultsInput, $resultSet, $user, $oldResults) {
             foreach ($schema as $field) {
                 $key = $field['key'] ?? null;
                 if (!$key) continue;
@@ -105,22 +112,16 @@ class ResultController extends Controller
 
         $resultSet->load('results');
         $newResults = $resultSet->results->keyBy('field_key')->map(fn($r) => $r->value_text ?? $r->value_num)->toArray();
-        $diff = [];
-        foreach (array_unique(array_merge(array_keys($oldResults), array_keys($newResults))) as $k) {
-            $old = $oldResults[$k] ?? null;
-            $new = $newResults[$k] ?? null;
-            if ($old !== $new) {
-                $diff[$k] = ['old' => $old, 'new' => $new];
-            }
-        }
-
-        AuditLog::create([
-            'entity_type' => 'result_set',
-            'entity_id' => $resultSet->id,
-            'diff_json' => json_encode($diff ?: ['action' => 'save_draft']),
-            'user_id' => Auth::id(),
-            'action' => 'save_draft'
-        ]);
+        
+        // Create proper audit log
+        AuditLog::log(
+            'result_set',
+            $resultSet->id,
+            'save_draft',
+            $oldResults,
+            $newResults,
+            $user->id
+        );
 
         return response()->json(['success' => true, 'result_set_id' => $resultSet->id]);
     }

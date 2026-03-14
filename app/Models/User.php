@@ -19,7 +19,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role'
     ];
 
     protected $hidden = [
@@ -35,12 +34,59 @@ class User extends Authenticatable
         ];
     }
 
+    // Legacy method for backward compatibility - remove after full migration
     public function hasRole($roles)
     {
         if (is_array($roles)) {
-            return in_array($this->role, $roles);
+            foreach ($roles as $role) {
+                if ($this->hasRole($role)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
-        return $this->role === $roles;
+        return $this->roles()->where('name', $roles)->exists();
+    }
+
+    public function getLegacyRoleAttribute()
+    {
+        return $this->roles->first()?->name ?? 'User';
+    }
+
+    // Relationships
+    public function createdSamples()
+    {
+        return $this->hasMany(Sample::class, 'created_by');
+    }
+
+    public function assignedMeasurements()
+    {
+        return $this->hasMany(Measurement::class, 'assignee_id');
+    }
+
+    public function submittedResultSets()
+    {
+        return $this->hasMany(ResultSet::class, 'submitted_by');
+    }
+
+    public function reviewedResultSets()
+    {
+        return $this->hasMany(ResultSet::class, 'reviewed_by');
+    }
+
+    public function approvedResultSets()
+    {
+        return $this->hasMany(ResultSet::class, 'approved_by');
+    }
+
+    public function rejectedResultSets()
+    {
+        return $this->hasMany(ResultSet::class, 'rejected_by');
+    }
+
+    public function auditLogs()
+    {
+        return $this->hasMany(AuditLog::class, 'user_id');
     }
 }
