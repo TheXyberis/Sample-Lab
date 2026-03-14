@@ -1,5 +1,6 @@
 <?php
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ScanController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\MethodController;
 use App\Http\Controllers\Api\MeasurementController;
@@ -8,6 +9,8 @@ use App\Http\Controllers\Api\SampleController;
 Route::post('auth/login', [AuthController::class, 'login']);
 Route::post('auth/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 Route::post('auth/refresh', [AuthController::class, 'refresh'])->middleware('auth:sanctum');
+
+Route::get('/samples/lookup', [ScanController::class, 'lookup'])->name('api.samples.lookup');
 
 Route::middleware('auth:sanctum')->group(function(){
     Route::get('/methods',[MethodController::class,'index']);

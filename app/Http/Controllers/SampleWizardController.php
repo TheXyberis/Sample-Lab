@@ -54,21 +54,21 @@ class SampleWizardController extends Controller
         if ($step === 1) {
             $clientId = $request->input('client_id');
             $projectId = $request->input('project_id');
-            
+
             if ($clientId >= 0 && !Client::find($clientId)) {
                 return response()->json([
                     'valid' => false,
                     'errors' => ['client_id' => ['Selected client is invalid.']],
                 ], 422);
             }
-            
+
             if ($projectId >= 0 && !Project::find($projectId)) {
                 return response()->json([
                     'valid' => false,
                     'errors' => ['project_id' => ['Selected project is invalid.']],
                 ], 422);
             }
-            
+
             if ($projectId < 0 && empty($clientId)) {
                 return response()->json([
                     'valid' => false,
@@ -150,7 +150,7 @@ class SampleWizardController extends Controller
                 'planned_at' => now()->addDay(),
                 'priority' => 1
             ]);
-            
+
             \App\Models\ResultSet::create([
                 'measurement_id' => $measurement->id,
                 'status' => 'DRAFT'

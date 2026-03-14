@@ -75,6 +75,12 @@
                                 <h5 class="mb-0">Recent Reports</h5>
                             </div>
                             <div class="card-body">
+                                @php
+                                    $recentReports = \App\Models\ReportLog::with('generator')
+                                        ->orderBy('generated_at', 'desc')
+                                        ->limit(10)
+                                        ->get();
+                                @endphp
                                 <div class="table-responsive">
                                     <table class="table table-sm">
                                         <thead>
@@ -87,9 +93,27 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td colspan="5" class="text-center text-muted">No reports generated yet</td>
-                                            </tr>
+                                            @if($recentReports->count() > 0)
+                                                @foreach($recentReports as $report)
+                                                    <tr>
+                                                        <td>
+                                                            <span class="badge bg-{{ $report->report_type === 'sample' ? 'primary' : 'success' }}">
+                                                                {{ ucfirst($report->report_type) }}
+                                                            </span>
+                                                        </td>
+                                                        <td>{{ $report->entity_name }}</td>
+                                                        <td>{{ $report->generator?->name ?? 'System' }}</td>
+                                                        <td>{{ $report->generated_at->format('Y-m-d H:i') }}</td>
+                                                        <td>
+                                                            <small class="text-muted">{{ $report->filename }}</small>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            @else
+                                                <tr>
+                                                    <td colspan="5" class="text-center text-muted">No reports generated yet</td>
+                                                </tr>
+                                            @endif
                                         </tbody>
                                     </table>
                                 </div>

@@ -156,6 +156,9 @@
                                 <button type="button" id="approveBtn" class="btn btn-success">
                                     <i class="fas fa-check"></i> Approve
                                 </button>
+                                <button type="button" id="rejectBtn" class="btn btn-danger">
+                                    <i class="fas fa-times"></i> Reject
+                                </button>
                             </div>
                         @elseif($currentResultSet->status === 'APPROVED' && Auth::user()->hasRole(['Admin', 'Manager', 'QC/Reviewer']))
                             <div class="d-flex gap-2">
@@ -189,6 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const approveBtn = document.getElementById('approveBtn');
     const lockBtn = document.getElementById('lockBtn');
     const unlockBtn = document.getElementById('unlockBtn');
+    const rejectBtn = document.getElementById('rejectBtn');
 
     function showLoading(button) {
         if (button) {
@@ -379,6 +383,44 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     showAlert('Error unlocking results', 'danger');
                 }
+            })
+            .finally(() => {
+                hideLoading(this, originalText);
+            });
+        });
+    }
+
+    if (rejectBtn) {
+        rejectBtn.addEventListener('click', function() {
+            const reason = prompt('Please provide rejection reason:');
+            if (!reason || reason.trim() === '') {
+                showAlert('Rejection reason is required', 'danger');
+                return;
+            }
+            
+            const originalText = this.innerHTML;
+            showLoading(this);
+
+            fetch(`/measurements/${measurementId}/results/reject`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ reason: reason })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'rejected') {
+                    showAlert('Results rejected: ' + (data.message || ''), 'warning');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showAlert('Error rejecting results', 'danger');
+                }
+            })
+            .catch(error => {
+                showAlert('Network error: ' + error.message, 'danger');
             })
             .finally(() => {
                 hideLoading(this, originalText);

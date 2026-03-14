@@ -6,7 +6,8 @@ class ResultSet extends Model
 {
     protected $fillable = [
         'measurement_id','status','submitted_by','submitted_at',
-        'reviewed_by','reviewed_at','approved_by','approved_at','locked_at'
+        'reviewed_by','reviewed_at','approved_by','approved_at','locked_at',
+        'rejected_by','rejected_at','rejection_reason'
     ];
 
     protected $casts = [
@@ -14,6 +15,7 @@ class ResultSet extends Model
         'reviewed_at' => 'datetime',
         'approved_at' => 'datetime',
         'locked_at' => 'datetime',
+        'rejected_at' => 'datetime',
     ];
 
     public function results() {
@@ -34,5 +36,9 @@ class ResultSet extends Model
 
     public function approver() {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function rejector() {
+        return $this->belongsTo(User::class, 'rejected_by');
     }
 }

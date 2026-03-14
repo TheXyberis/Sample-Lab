@@ -9,6 +9,7 @@ use App\Http\Controllers\SampleWebController;
 use App\Http\Controllers\SampleWizardController;
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ScanController;
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
@@ -20,8 +21,9 @@ Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', fn()=>view('dashboard'))->name('dashboard');
 });
-
 Route::middleware(['auth'])->group(function () {
+    Route::get('/scan', [ScanController::class, 'index'])->name('scan.index');
+    Route::get('/api/samples/lookup', [ScanController::class, 'lookup'])->name('api.samples.lookup');
 
     Route::get('/admin-only', function () {
         return "OK ADMIN";
@@ -74,6 +76,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{id}/results/approve', [ResultController::class, 'approve'])->name('results.approve')->middleware('permission:results:approve');
         Route::post('/{id}/results/lock', [ResultController::class, 'lock'])->name('results.lock')->middleware('permission:results:lock');
         Route::post('/{id}/results/unlock', [ResultController::class, 'unlock'])->name('results.unlock')->middleware('permission:results:unlock');
+        Route::post('/{id}/results/reject', [ResultController::class, 'reject'])->name('results.reject')->middleware('permission:results:unlock');
     });
 
     Route::post('/samples/import/preview', [SampleWebController::class, 'importPreview'])->name('samples.import.preview')->middleware('permission:samples:import');
