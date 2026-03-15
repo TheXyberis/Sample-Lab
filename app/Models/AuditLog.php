@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Auth;
 
 class AuditLog extends Model
 {
@@ -50,7 +51,7 @@ class AuditLog extends Model
     public static function log($entityType, $entityId, $action, $oldValues = null, $newValues = null, $userId = null)
     {
         $diff = null;
-        
+
         if ($oldValues && $newValues) {
             $diff = self::calculateDiff($oldValues, $newValues);
         }
@@ -62,7 +63,7 @@ class AuditLog extends Model
             'old_values' => $oldValues,
             'new_values' => $newValues,
             'diff_json' => $diff,
-            'user_id' => $userId ?? auth()->id(),
+            'user_id' => $userId ?? Auth::id(),
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
         ]);
@@ -71,11 +72,11 @@ class AuditLog extends Model
     private static function calculateDiff($old, $new)
     {
         $diff = [];
-        
+
         if (is_array($old) || is_object($old)) {
             $oldArray = (array) $old;
             $newArray = (array) $new;
-            
+
             foreach ($newArray as $key => $value) {
                 if (!array_key_exists($key, $oldArray)) {
                     $diff[$key] = [
@@ -90,7 +91,7 @@ class AuditLog extends Model
                     ];
                 }
             }
-            
+
             foreach ($oldArray as $key => $value) {
                 if (!array_key_exists($key, $newArray)) {
                     $diff[$key] = [
@@ -108,7 +109,7 @@ class AuditLog extends Model
                 ];
             }
         }
-        
+
         return $diff;
     }
 

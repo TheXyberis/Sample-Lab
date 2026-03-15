@@ -8,6 +8,12 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Laravel\Sanctum\HasApiTokens;
 
+/**
+ * @method bool hasPermissionTo(string $permission)
+ * @method bool hasRole(string|array $roles)
+ * @method mixed getRoleNames()
+ * @method mixed getPermissions()
+ */
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;

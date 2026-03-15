@@ -15,7 +15,7 @@ class CheckPermission
         }
 
         $user = Auth::user();
-        
+
         if (!$user->hasPermissionTo($permission)) {
             abort(403, 'Unauthorized action. You do not have permission to perform this action.');
         }

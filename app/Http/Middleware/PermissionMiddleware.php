@@ -31,42 +31,87 @@ class PermissionMiddleware
 
         abort(403, 'Unauthorized action.');
     }
-    
+
     private function getRolePermissions($role)
     {
         $rolePermissions = [
             'Admin' => [
-                'samples:create', 'samples:read', 'samples:update', 'samples:archive', 'samples:delete', 'samples:import',
-                'measurements:read', 'measurements:plan', 'measurements:start', 'measurements:finish', 'measurements:assign',
-                'results:read', 'results:edit', 'results:submit', 'results:review', 'results:approve', 'results:lock', 'results:unlock',
-                'methods:read', 'methods:create', 'methods:version', 'methods:publish', 'methods:update',
-                'users:manage', 'reports:generate', 'reports:download', 'audit:read', 'integrations:manage'
+                'samples:create',
+                'samples:read',
+                'samples:update',
+                'samples:archive',
+                'samples:delete',
+                'samples:import',
+                'measurements:read',
+                'measurements:plan',
+                'measurements:start',
+                'measurements:finish',
+                'measurements:assign',
+                'results:read',
+                'results:edit',
+                'results:submit',
+                'results:review',
+                'results:approve',
+                'results:lock',
+                'results:unlock',
+                'methods:read',
+                'methods:create',
+                'methods:version',
+                'methods:publish',
+                'methods:update',
+                'users:manage',
+                'reports:generate',
+                'reports:download',
+                'audit:read',
+                'integrations:manage'
             ],
             'Manager' => [
-                'samples:create', 'samples:read', 'samples:update', 'samples:import',
-                'measurements:read', 'measurements:plan', 'measurements:assign',
-                'results:read', 'results:review', 'results:approve', 'results:lock',
+                'samples:create',
+                'samples:read',
+                'samples:update',
+                'samples:import',
+                'measurements:read',
+                'measurements:plan',
+                'measurements:assign',
+                'results:read',
+                'results:review',
+                'results:approve',
+                'results:lock',
                 'methods:read',
-                'reports:generate', 'reports:download', 'audit:read'
+                'reports:generate',
+                'reports:download',
+                'audit:read'
             ],
             'Laborant' => [
-                'samples:create', 'samples:read', 'samples:import',
-                'measurements:read', 'measurements:plan', 'measurements:start', 'measurements:finish',
-                'results:read', 'results:edit', 'results:submit'
+                'samples:create',
+                'samples:read',
+                'samples:import',
+                'measurements:read',
+                'measurements:plan',
+                'measurements:start',
+                'measurements:finish',
+                'results:read',
+                'results:edit',
+                'results:submit'
             ],
             'QC/Reviewer' => [
                 'samples:read',
                 'measurements:read',
-                'results:read', 'results:review', 'results:approve', 'results:lock', 'results:unlock',
+                'results:read',
+                'results:review',
+                'results:approve',
+                'results:lock',
+                'results:unlock',
                 'methods:read',
-                'reports:download', 'audit:read'
+                'reports:download',
+                'audit:read'
             ],
             'Client' => [
                 'samples:read',
                 'reports:download'
             ]
         ];
-        
+
         return $rolePermissions[$role] ?? [];
     }
 }

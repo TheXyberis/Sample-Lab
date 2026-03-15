@@ -35,7 +35,7 @@ class ResultController extends Controller
         $measurement = Measurement::with(['method', 'resultSets.results', 'resultSets.submitter'])->findOrFail($measurementId);
         $method = $measurement->method;
 
-        $schemaData = is_array($method->schema_json) ? $method->schema_json : json_decode($method->schema_json, true);
+        $schemaData = $method->schema_json;
         $schema = $schemaData['fields'] ?? [];
 
         $results = [];
@@ -68,9 +68,7 @@ class ResultController extends Controller
 
         $measurement = Measurement::with('method')->findOrFail($id);
 
-        $schemaData = is_array($measurement->method->schema_json)
-            ? $measurement->method->schema_json
-            : json_decode($measurement->method->schema_json, true);
+        $schemaData = $measurement->method->schema_json;
         $schema = $schemaData['fields'] ?? [];
 
         $resultsInput = $request->input('results', []);
@@ -135,9 +133,7 @@ class ResultController extends Controller
             return response()->json(['error' => 'No draft found. Save draft first.'], 400);
         }
 
-        $schemaData = is_array($measurement->method->schema_json)
-            ? $measurement->method->schema_json
-            : json_decode($measurement->method->schema_json, true);
+        $schemaData = $measurement->method->schema_json;
         $schema = $schemaData['fields'] ?? [];
         $resultsByKey = $resultSet->results->keyBy('field_key');
 
