@@ -78,11 +78,23 @@
                         </tr> 
                     @empty 
                         <tr> 
-                            <td colspan="7" class="text-center text-muted py-5">
-                                No samples found. <a href="{{ route('samples.create-wizard') }}">Create via Wizard</a> or <a href="{{ route('samples.import') }}">Import CSV</a>. 
+                            <td colspan="7" class="text-center py-5">
+
+                                <i class="fas fa-vials fa-3x text-secondary mb-3"></i>
+
+                                <div class="text-muted">
+                                    No samples found.
+                                </div>
+
+                                <div class="mt-2">
+                                    <a href="{{ route('samples.create-wizard') }}">Create via Wizard</a> 
+                                    or 
+                                    <a href="{{ route('samples.import') }}">Import CSV</a>.
+                                </div>
+
                             </td> 
                         </tr>
-                        @endforelse 
+                    @endforelse 
                 </tbody> 
             </table> 
         </div> 

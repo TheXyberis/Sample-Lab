@@ -16,6 +16,12 @@
         .navbar-brand {
             font-weight: 600;
             color: #0d6efd;
+            transition: 0.3s;
+        }
+
+        .navbar-brand:hover {
+            color: #084298;
+            text-decoration: none;
         }
 
         .card {
@@ -29,11 +35,28 @@
 
         .table-hover tbody tr:hover {
             background-color: #e9f2ff;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
 
-        .nav-link.active {
-            font-weight: 500;
-            color: #0d6efd !important;
+        .nav-link {
+            transition: 0.3s;
+        }
+
+        .nav-link:hover {
+            color: #0d6efd;
+            text-decoration: underline;
+        }
+
+        .btn:hover {
+            filter: brightness(0.95);
+            transition: 0.3s;
+        }
+
+        .btn-outline-danger:hover {
+            color: #fff;
+            background-color: #dc3545;
+            border-color: #dc3545;
         }
     </style>
 </head>
@@ -79,12 +102,12 @@
                             <span class="nav-link text-muted d-flex align-items-center">
                                 Your role is:
                                 <span class="badge ms-2
-                                    {{ Auth::user()->role == 'Admin' ? 'bg-danger' : '' }}
-                                    {{ Auth::user()->role == 'Manager' ? 'bg-success' : '' }}
-                                    {{ Auth::user()->role == 'Laborant' ? 'bg-info text-dark' : '' }}
-                                    {{ Auth::user()->role == 'QC/Reviewer' ? 'bg-warning text-dark' : '' }}
-                                    {{ Auth::user()->role == 'Client' ? 'bg-secondary' : '' }}
-                                    {{ Auth::user()->role == 'Analyst' ? 'bg-light text-dark border' : '' }}">
+                                        {{ Auth::user()->role == 'Admin' ? 'bg-danger' : '' }}
+                                        {{ Auth::user()->role == 'Manager' ? 'bg-success' : '' }}
+                                        {{ Auth::user()->role == 'Laborant' ? 'bg-info text-dark' : '' }}
+                                        {{ Auth::user()->role == 'QC/Reviewer' ? 'bg-warning text-dark' : '' }}
+                                        {{ Auth::user()->role == 'Client' ? 'bg-secondary' : '' }}
+                                        {{ Auth::user()->role == 'Analyst' ? 'bg-light text-dark border' : '' }}">
                                     {{ Auth::user()->role }}
                                 </span>
                             </span>
