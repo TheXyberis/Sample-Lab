@@ -16,9 +16,15 @@
                     <input  
                         type="email"  
                         name="email"  
-                        class="form-control"  
+                        class="form-control @error('email') is-invalid @enderror"  
                         placeholder="Enter your email" 
+                        value="{{ old('email') }}"
                         required> 
+                    @error('email')
+                        <div class="invalid-feedback d-block">
+                            <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
+                        </div>
+                    @enderror
                 </div> 
  
                 <div class="mb-3"> 
@@ -26,15 +32,26 @@
                     <input  
                         type="password"  
                         name="password"  
-                        class="form-control" 
+                        class="form-control @error('password') is-invalid @enderror" 
                         placeholder="Enter your password" 
                         required> 
+                    @error('password')
+                        <div class="invalid-feedback d-block">
+                            <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
+                        </div>
+                    @enderror
                 </div> 
  
-                <div class="d-grid"> 
-                    <button class="btn btn-primary"> 
-                        Login 
-                    </button> 
+                <div class="d-grid mb-3">
+                    <button class="btn btn-primary">
+                        Login
+                    </button>
+                </div>
+
+                <div class="text-center">
+                    <a href="{{ route('password.request') }}" class="text-decoration-none text-muted">
+                        <i class="fas fa-question-circle me-1"></i>Forgot Password?
+                    </a>
                 </div> 
  
             </form> 

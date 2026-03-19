@@ -135,6 +135,37 @@
         </div>
     </div>
 </div>
+
+<!-- QR Print Modal -->
+<div class="modal fade" id="qrPrintModal" tabindex="-1" aria-labelledby="qrPrintModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="qrPrintModalLabel">
+                    <i class="fas fa-qrcode me-2"></i>Print QR Code
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div id="qrCodeContainer">
+                    <!-- QR code will be generated here -->
+                </div>
+                <div class="mt-3">
+                    <h6 id="qrSampleCode" class="text-primary fw-bold"></h6>
+                    <p class="text-muted small">Scan this QR code to quickly access the sample</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-primary" onclick="printQRCode()">
+                    <i class="fas fa-print me-1"></i> Print QR Code
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('scripts')
@@ -145,6 +176,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const clearBtn = document.getElementById('clearBtn');
     const cameraBtn = document.getElementById('cameraBtn');
     const sampleResult = document.getElementById('sampleResult');
+
+    // Check if elements exist
+    if (!scanForm || !sampleCodeInput || !clearBtn || !cameraBtn || !sampleResult) {
+        console.error('Required DOM elements not found');
+        return;
+    }
 
     // Auto-focus on input field
     sampleCodeInput.focus();
@@ -171,135 +208,6 @@ document.addEventListener('DOMContentLoaded', function() {
     cameraBtn.addEventListener('click', function() {
         showAlert('Camera scanning feature coming soon!', 'info');
     });
-    
-    function findSample(sampleCode) {
-        fetch(`/api/samples/lookup?code=${encodeURIComponent(sampleCode)}`, {
-            method: 'GET',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                displaySampleDetails(data.sample);
-            } else {
-                showAlert(data.message || 'Sample not found', 'danger');
-                sampleResult.style.display = 'none';
-            }
-        })
-        .catch(error => {
-            showAlert('Error searching for sample', 'danger');
-            console.error('Error:', error);
-        });
-    }
-    
-    function displaySampleDetails(sample) {
-        const statusColors = {
-            'REGISTERED': 'secondary',
-            'IN_PROGRESS': 'info',
-            'COMPLETED': 'success',
-            'ARCHIVED': 'dark',
-            'DISPOSED': 'danger'
-        };
-
-        const measurementsHtml = sample.measurements.map(meas => `
-            <tr>
-                <td>${meas.method.name}</td>
-                <td><span class="badge bg-${meas.status === 'DONE' ? 'success' : 'warning'}">${meas.status}</span></td>
-                <td>${meas.assignee?.name || 'Unassigned'}</td>
-                <td>
-                    ${meas.result_sets && meas.result_sets.length > 0 ? 
-                        `<a href="/measurements/${meas.id}/results" class="btn btn-sm btn-primary">View Results</a>` : 
-                        '<span class="text-muted">No results</span>'
-                    }
-                </td>
-            </tr>
-        `).join('');
-
-        sampleResult.innerHTML = `
-            <div class="card border-success">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">Sample Found: ${sample.sample_code}</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <table class="table table-sm table-borderless">
-                                <tr><td><strong>Name:</strong></td><td>${sample.name}</td></tr>
-                                <tr><td><strong>Type:</strong></td><td>${sample.type}</td></tr>
-                                <tr><td><strong>Status:</strong></td><td><span class="badge bg-${statusColors[sample.status] || 'secondary'}">${sample.status}</span></td></tr>
-                                <tr><td><strong>Client:</strong></td><td>${sample.client?.name || 'N/A'}</td></tr>
-                            </table>
-                        </div>
-                        <div class="col-md-6">
-                            <table class="table table-sm table-borderless">
-                                <tr><td><strong>Project:</strong></td><td>${sample.project?.name || 'N/A'}</td></tr>
-                                <tr><td><strong>Quantity:</strong></td><td>${sample.quantity || 'N/A'} ${sample.unit || ''}</td></tr>
-                                <tr><td><strong>Received:</strong></td><td>${sample.received_at || 'N/A'}</td></tr>
-                                <tr><td><strong>Registered:</strong></td><td>${sample.created_at}</td></tr>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="d-flex gap-2 mb-3">
-                        <a href="/samples/${sample.id}" class="btn btn-primary">
-                            <i class="fas fa-eye"></i> Full Details
-                        </a>
-                        <a href="/samples/${sample.id}/label" class="btn btn-outline-secondary" target="_blank">
-                            <i class="fas fa-print"></i> Print Label
-                        </a>
-                        <button onclick="printSampleCode('${sample.sample_code}')" class="btn btn-outline-info">
-                            <i class="fas fa-qrcode"></i> Print QR
-                        </button>
-                    </div>
-
-                    ${sample.measurements && sample.measurements.length > 0 ? `
-                        <h6>Measurements (${sample.measurements.length})</h6>
-                        <div class="table-responsive">
-                            <table class="table table-sm">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Method</th>
-                                        <th>Status</th>
-                                        <th>Assignee</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${measurementsHtml}
-                                </tbody>
-                            </table>
-                        </div>
-                    ` : '<p class="text-muted">No measurements planned for this sample.</p>'}
-                </div>
-            </div>
-        `;
-        
-        sampleResult.style.display = 'block';
-        
-        // Scroll to result
-        sampleResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-
-    // Print sample code (placeholder)
-    function printSampleCode(sampleCode) {
-        showAlert(`Printing QR code for ${sampleCode}...`, 'info');
-        // Future implementation: trigger QR code print
-    }
-
-    // Show alert function
-    function showAlert(message, type = 'info') {
-        const alertDiv = document.createElement('div');
-        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-        alertDiv.innerHTML = `${message} <button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
-        
-        const card = document.querySelector('.card-body');
-        card.insertBefore(alertDiv, card.firstChild);
-        
-        setTimeout(() => alertDiv.remove(), 5000);
-    }
 
     // Keyboard shortcuts
     document.addEventListener('keydown', function(e) {
@@ -315,5 +223,274 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// Find Sample function - Global
+function findSample(sampleCode) {
+    console.log('Searching for sample:', sampleCode);
+    
+    fetch(`/api/samples/lookup?code=${encodeURIComponent(sampleCode)}`, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('API response:', data);
+        if (data.success) {
+            displaySampleDetails(data.sample);
+        } else {
+            showAlert(data.message || 'Sample not found', 'danger');
+            const sampleResult = document.getElementById('sampleResult');
+            if (sampleResult) sampleResult.style.display = 'none';
+        }
+    })
+    .catch(error => {
+        console.error('Error searching for sample:', error);
+        showAlert('Error searching for sample. Please try again.', 'danger');
+        const sampleResult = document.getElementById('sampleResult');
+        if (sampleResult) sampleResult.style.display = 'none';
+    });
+}
+
+// Display Sample Details function - Global
+function displaySampleDetails(sample) {
+    const sampleResult = document.getElementById('sampleResult');
+    if (!sampleResult) {
+        console.error('Sample result container not found');
+        return;
+    }
+    
+    const statusColors = {
+        'REGISTERED': 'secondary',
+        'IN_PROGRESS': 'info',
+        'COMPLETED': 'success',
+        'ARCHIVED': 'dark',
+        'DISPOSED': 'danger'
+    };
+
+    const measurementsHtml = sample.measurements.map(meas => `
+        <tr>
+            <td>${meas.method.name}</td>
+            <td><span class="badge bg-${meas.status === 'DONE' ? 'success' : 'warning'}">${meas.status}</span></td>
+            <td>${meas.assignee?.name || 'Unassigned'}</td>
+            <td>
+                ${meas.result_sets && meas.result_sets.length > 0 ? 
+                    `<a href="/measurements/${meas.id}/results" class="btn btn-sm btn-primary">View Results</a>` : 
+                    '<span class="text-muted">No results</span>'
+                }
+            </td>
+        </tr>
+    `).join('');
+
+    sampleResult.innerHTML = `
+        <div class="card border-success">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Sample Found: ${sample.sample_code}</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <table class="table table-sm table-borderless">
+                            <tr><td><strong>Name:</strong></td><td>${sample.name}</td></tr>
+                            <tr><td><strong>Type:</strong></td><td>${sample.type}</td></tr>
+                            <tr><td><strong>Status:</strong></td><td><span class="badge bg-${statusColors[sample.status] || 'secondary'}">${sample.status}</span></td></tr>
+                            <tr><td><strong>Client:</strong></td><td>${sample.client?.name || 'N/A'}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-sm table-borderless">
+                            <tr><td><strong>Project:</strong></td><td>${sample.project?.name || 'N/A'}</td></tr>
+                            <tr><td><strong>Quantity:</strong></td><td>${sample.quantity || 'N/A'} ${sample.unit || ''}</td></tr>
+                            <tr><td><strong>Received:</strong></td><td>${sample.received_at || 'N/A'}</td></tr>
+                            <tr><td><strong>Registered:</strong></td><td>${sample.created_at}</td></tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mb-3">
+                    <a href="/samples/${sample.id}" class="btn btn-primary">
+                        <i class="fas fa-eye"></i> Full Details
+                    </a>
+                    <a href="/samples/${sample.id}/label" class="btn btn-outline-secondary" target="_blank">
+                        <i class="fas fa-print"></i> Print Label
+                    </a>
+                    <button onclick="showQRPrintModal('${sample.sample_code}')" class="btn btn-outline-info">
+                        <i class="fas fa-qrcode"></i> Print QR
+                    </button>
+                </div>
+
+                ${sample.measurements && sample.measurements.length > 0 ? `
+                    <h6>Measurements (${sample.measurements.length})</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Method</th>
+                                    <th>Status</th>
+                                    <th>Assignee</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${measurementsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                ` : '<p class="text-muted">No measurements planned for this sample.</p>'}
+            </div>
+        </div>
+    `;
+    
+    sampleResult.style.display = 'block';
+    
+    // Scroll to result
+    sampleResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// Show alert function - Global function
+function showAlert(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `${message} <button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+    
+    const card = document.querySelector('.card-body');
+    if (card) {
+        card.insertBefore(alertDiv, card.firstChild);
+    } else {
+        // Fallback: add to body if no card-body found
+        document.body.insertBefore(alertDiv, document.body.firstChild);
+    }
+    
+    setTimeout(function() { alertDiv.remove(); }, 5000);
+}
+
+// Show QR Print Modal - Global function for onclick handlers
+function showQRPrintModal(sampleCode) {
+    const modalElement = document.getElementById('qrPrintModal');
+    const qrContainer = document.getElementById('qrCodeContainer');
+    const qrSampleCode = document.getElementById('qrSampleCode');
+    
+    // Check if modal elements exist
+    if (!modalElement || !qrContainer || !qrSampleCode) {
+        showAlert('QR modal elements not found', 'danger');
+        return;
+    }
+    
+    const modal = new bootstrap.Modal(modalElement);
+    
+    // Set sample code in modal
+    qrSampleCode.textContent = sampleCode;
+    
+    // Generate QR code
+    generateQRCode(sampleCode, qrContainer);
+    
+    // Show modal
+    modal.show();
+}
+
+// Generate QR Code - Global function
+function generateQRCode(text, container) {
+    // Clear previous QR code
+    container.innerHTML = '';
+    
+    // Create QR code using QR Server API
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(text)}`;
+    const qrImage = document.createElement('img');
+    qrImage.src = qrUrl;
+    qrImage.alt = `QR Code for ${text}`;
+    qrImage.className = 'img-fluid';
+    qrImage.style.maxWidth = '200px';
+    
+    container.appendChild(qrImage);
+}
+
+// Print QR Code - Global function
+function printQRCode() {
+    const qrSampleCodeElement = document.getElementById('qrSampleCode');
+    
+    if (!qrSampleCodeElement) {
+        showAlert('QR sample code element not found', 'danger');
+        return;
+    }
+    
+    const sampleCode = qrSampleCodeElement.textContent;
+    
+    if (!sampleCode) {
+        showAlert('No sample code available for printing', 'warning');
+        return;
+    }
+    
+    // Create print window
+    const printWindow = window.open('', '_blank');
+    
+    // Generate QR code for print
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(sampleCode)}`;
+    
+    // Create print content
+    const printContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>QR Code - ${sampleCode}</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    text-align: center;
+                    padding: 20px;
+                    margin: 0;
+                }
+                .qr-container {
+                    margin: 20px auto;
+                    max-width: 300px;
+                }
+                .sample-code {
+                    font-size: 18px;
+                    font-weight: bold;
+                    color: #0d6efd;
+                    margin: 10px 0;
+                }
+                .description {
+                    color: #666;
+                    font-size: 14px;
+                }
+                @media print {
+                    body { margin: 0; }
+                    .no-print { display: none; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="qr-container">
+                <h3>Sample QR Code</h3>
+                <img src="${qrUrl}" alt="QR Code for ${sampleCode}" style="max-width: 100%;">
+                <div class="sample-code">${sampleCode}</div>
+                <div class="description">Scan to access sample details</div>
+            </div>
+            <div class="no-print">
+                <button onclick="window.print()" style="margin: 10px; padding: 10px 20px; background: #0d6efd; color: white; border: none; border-radius: 4px; cursor: pointer;">Print</button>
+                <button onclick="window.close()" style="margin: 10px; padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Close</button>
+            </div>
+        </body>
+        </html>
+    `;
+    
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    
+    // Auto-focus and show print dialog after content loads
+    printWindow.onload = function() {
+        printWindow.focus();
+        setTimeout(function() {
+            printWindow.print();
+        }, 500);
+    };
+}
 </script>
 @endsection

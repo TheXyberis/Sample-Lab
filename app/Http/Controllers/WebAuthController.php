@@ -19,14 +19,24 @@ class WebAuthController extends Controller
             'password'=>'required|string'
         ]);
 
-        if(Auth::attempt($credentials)){
-            $request->session()->regenerate();
-            return redirect()->intended('/dashboard');
+        // Check if user exists by email
+        $user = \App\Models\User::where('email', $request->email)->first();
+        
+        if (!$user) {
+            return back()->withErrors([
+                'email' => 'Email not found in our system'
+            ])->withInput($request->only('email'));
         }
 
-        return back()->withErrors([
-            'email'=>'Invalid credentials'
-        ]);
+        // Check if password is correct
+        if (!Auth::attempt($credentials)) {
+            return back()->withErrors([
+                'password' => 'Incorrect password'
+            ])->withInput($request->only('email'));
+        }
+
+        $request->session()->regenerate();
+        return redirect()->intended('/dashboard');
     }
 
     public function logout(Request $request)

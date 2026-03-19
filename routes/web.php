@@ -10,6 +10,7 @@ use App\Http\Controllers\SampleWizardController;
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ScanController;
+use App\Http\Controllers\PasswordResetController;
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
@@ -18,6 +19,12 @@ Route::get('/', function () {
 Route::get('/login', [WebAuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [WebAuthController::class, 'login'])->name('login.submit');
 Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
+
+// Password Reset Routes
+Route::get('/forgot-password', [PasswordResetController::class, 'showRequestForm'])->name('password.request');
+Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'])->name('password.email');
+Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
+Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('password.update');
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', fn()=>view('dashboard'))->name('dashboard');
 });

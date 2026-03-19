@@ -43,10 +43,11 @@
             transition: 0.3s;
         }
 
+        /*
         .nav-link:hover {
             color: #0d6efd;
             text-decoration: underline;
-        }
+        }*/
 
         .btn:hover {
             filter: brightness(0.95);
