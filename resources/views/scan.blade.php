@@ -162,19 +162,16 @@ document.addEventListener('DOMContentLoaded', function() {
         findSample(sampleCode);
     });
 
-    // Clear button
     clearBtn.addEventListener('click', function() {
         sampleCodeInput.value = '';
         sampleResult.style.display = 'none';
         sampleCodeInput.focus();
     });
 
-    // Camera button (placeholder for future camera integration)
     cameraBtn.addEventListener('click', function() {
         showAlert('Camera scanning feature coming soon!', 'info');
     });
-
-    // Find sample function
+    
     function findSample(sampleCode) {
         fetch(`/api/samples/lookup?code=${encodeURIComponent(sampleCode)}`, {
             method: 'GET',
@@ -197,8 +194,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error:', error);
         });
     }
-
-    // Display sample details
+    
     function displaySampleDetails(sample) {
         const statusColors = {
             'REGISTERED': 'secondary',
